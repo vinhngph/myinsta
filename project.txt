@@ -1,0 +1,17 @@
+What will your software do? What features will it have? How will it be executed?
+What new skills will you need to acquire? What topics will you need to research?
+If working with one or two classmates, who will do what?
+In the world of software, most everything takes longer to implement than you expect. And so it’s not uncommon to accomplish less in a fixed amount of time than you hope. What might you consider to be a good outcome for your project? A better outcome? The best outcome?
+
+Step 1 of 3:
+Create a short video (that’s no more than 3 minutes in length) in which you present your project to the world. Your video must begin with an opening section that displays:
+    - your project’s title: Clone Instagram
+    - your name;
+    - your GitHub and edX usernames;
+    - your city and country;
+    - and, the date you have recorded this video.
+You’re welcome to use an actual camera. Upload your video to YouTube (or, if blocked in your country, a similar site) and take note of its URL; it’s fine to flag it as “unlisted,” but don’t flag it as “private.”
+https://forms.cs50.io/25c473e0-f07f-4a8f-9039-553fd3c29375
+
+Step 2 of 3:
+ - Create README.md
