@@ -1,9 +1,7 @@
 import os
-import dotenv
 import jwt
 import time
-
-dotenv.load_dotenv()
+import uuid
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 
@@ -22,3 +20,10 @@ def jwt_token_valid(token):
     except jwt.InvalidTokenError:
         return False
     
+def generate_unique_post_id(db):
+    while True:
+        file_id = str(uuid.uuid4())
+        result = db.execute("SELECT * FROM posts WHERE id=?", (file_id,))
+
+        if not result:
+            return file_id

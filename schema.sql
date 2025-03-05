@@ -5,3 +5,12 @@ CREATE TABLE users(
     PRIMARY KEY (id),
     UNIQUE (id, email)
 )
+
+CREATE TABLE posts (
+    id TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    description TEXT NOT NULL,
+    attachment TEXT NOT NULL,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
