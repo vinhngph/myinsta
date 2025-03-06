@@ -14,6 +14,9 @@ class SQL:
 
                 if query.strip().upper().startswith("SELECT"):
                     return [dict(row) for row in cursor.fetchall()]
+                elif query.strip().upper().startswith("INSERT"):
+                    conn.commit()
+                    return cursor.lastrowid
                 else:
                     conn.commit()
                     return None

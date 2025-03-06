@@ -27,6 +27,15 @@ body {
     margin-bottom: 1.5rem;
 }
 
+/* Hide none active steps */
+.step {
+    display: none;
+}
+
+.step.active {
+    display: block;
+}
+
 .form-floating {
     position: relative;
 }
@@ -36,8 +45,10 @@ body {
     border: 1px solid #444;
     color: #fff;
     height: 3.5rem;
-    padding: 1rem 0.75rem;
-    line-height: 1.5;
+    padding: 0 0.75rem;
+    line-height: 3.5rem;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
 }
 
 .form-floating>.form-control:focus {
@@ -72,6 +83,20 @@ body {
 .btn-primary:hover {
     background-color: #74caff;
     border-color: #74caff;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid #444;
+    color: #fff;
+    font-size: 1rem;
+    padding: 0.75rem 1.25rem;
+    width: 100%;
+}
+
+.btn-secondary:hover {
+    border-color: #4db5ff;
+    color: #4db5ff;
 }
 
 .text-login {

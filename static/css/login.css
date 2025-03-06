@@ -36,8 +36,10 @@ body {
     border: 1px solid #444;
     color: #fff;
     height: 3.5rem;
-    padding: 1rem 0.75rem;
-    line-height: 1.5;
+    padding: 0 0.75rem;
+    line-height: 3.5rem;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
 }
 
 .form-floating>.form-control:focus {
