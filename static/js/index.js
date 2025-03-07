@@ -85,7 +85,7 @@ async function loadPosts() {
             created_on.className = "card-text";
             const small = document.createElement("small");
             small.className = "post-time";
-            small.innerText = new Date(value.created_on).toLocaleString();
+            small.innerText = new Date(value.created_on + " UTC").toLocaleString();
             created_on.appendChild(small);
 
             cardBody.appendChild(description);
