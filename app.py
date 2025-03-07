@@ -16,6 +16,7 @@ from email_validator import validate_email, EmailNotValidError
 
 from sql import SQL
 import utils
+from auth import login_required
 
 dotenv.load_dotenv()
 
@@ -167,12 +168,13 @@ def logout():
 # Features
 @app.route("/post", methods=["GET", "POST", "PUT", "DELETE"])
 def post():
-    if request.method == "POST":
-        if not (token := request.cookies.get("auth_token")) or not (
-            user := utils.jwt_token_valid(token=token)
-        ):
-            return redirect("/login")
+    # Require login
+    if not (token := request.cookies.get("auth_token")) or not (
+        user := utils.jwt_token_valid(token=token)
+    ):
+        return jsonify({"message": "Please login!"}), 401
 
+    if request.method == "POST":
         # Handle file upload
         file = request.files["file"]
         if (
@@ -204,24 +206,11 @@ def post():
         except:
             return "", 500
 
-    elif request.method == "GET":
-        limit = request.args.get("limit")
-        offset = request.args.get("offset")
-        if not limit or not offset:
-            return jsonify({"message": "missing limit or offset"}), 400
 
-        try:
-            posts = db.execute(
-                "SELECT p.id, p.description, p.created_on, u.username FROM posts AS p JOIN users AS u ON p.user_id=u.id LIMIT ? OFFSET ?",
-                (limit, offset),
-            )
-            if not posts:
-                return jsonify({"message": "Acceptable"}), 404
-            for post in posts:
-                post["attachment"] = url_for("cdn", id=post["id"], _external=True)
-            return jsonify(posts)
-        except:
-            return jsonify({"message": "Acceptable"}), 404
+@app.route("/me")
+@login_required
+def me(user):
+    return render_template("me.html", user=user)
 
 
 @app.route("/cdn")
@@ -274,3 +263,52 @@ def valid_username():
             return jsonify({"message": "Acceptable"}), 200
     except:
         return jsonify({"message": "Unacceptable"}), 400
+
+
+@app.route("/api/home")
+@login_required
+def home_post(_):
+    limit = request.args.get("limit")
+    offset = request.args.get("offset")
+    if not limit or not offset:
+        return jsonify({"message": "missing limit or offset"}), 400
+
+    try:
+        posts = db.execute(
+            "SELECT p.id, p.description, p.created_on, u.username FROM posts AS p JOIN users AS u ON p.user_id=u.id LIMIT ? OFFSET ?",
+            (limit, offset),
+        )
+        if not posts:
+            return jsonify({"message": "Not found"}), 404
+        for post in posts:
+            post["attachment"] = url_for("cdn", id=post["id"], _external=True)
+        return jsonify(posts), 200
+    except:
+        return jsonify({"message": "Server error"}), 500
+
+
+@app.route("/api/me/posts")
+@login_required
+def user_posts(user):
+    # Parameters
+    limit = request.args.get("l")
+    offset = request.args.get("o")
+    if not limit or not offset:
+        return jsonify({"message": "missing limit or offset"}), 400
+    # ----------------------------------------------------------------
+    # Get user's posts
+    try:
+        posts = db.execute(
+            "SELECT p.id, p.description, p.created_on FROM posts AS p WHERE p.user_id=? LIMIT ? OFFSET ?",
+            (user["id"], limit, offset),
+        )
+
+        if not posts:
+            return jsonify({"message": "Not found"}), 404
+
+        for post in posts:
+            post["attachment"] = url_for("cdn", id=post["id"], _external=True)
+
+        return jsonify(posts), 200
+    except:
+        return jsonify({"message": "Server error"}), 500

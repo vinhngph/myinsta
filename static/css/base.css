@@ -1,0 +1,61 @@
+body {
+    background-color: #121212;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 220px;
+    background-color: #1e1e1e;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.main-content {
+    margin-left: 220px;
+    padding: 1rem;
+}
+
+.content-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.myinsta-logo {
+    text-decoration: none;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4db5ff;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    height: 300px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    background-color: #1e1e1e;
+}
+
+.drop-zone__prompt {
+    color: #aaa;
+    font-size: 1.2rem;
+    text-align: center;
+    pointer-events: none;
+}
+
+.user-profile-link {
+    text-decoration: none;
+    font-size: large;
+    color: whitesmoke;
+}

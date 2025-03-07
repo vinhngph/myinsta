@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myinsta</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/css/base.css">
+    {% block extra_css %} {% endblock %}
+</head>
+
+<body class="text-light">
+    <!-- Sidebar -->
+    <div class="sidebar d-flex flex-column align-items-center">
+        <a class="myinsta-logo" href="/">myinsta</a>
+        <a class="user-profile-link mb-3" href="/me">@{{ user.username }}</a>
+        <button id="btnCreate" class="btn btn-outline-success w-100">Create</button>
+        <div class="mt-auto w-100">
+            <a href="/logout" class="btn btn-outline-secondary w-100">Logout</a>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block main %}
+        <!-- Main content -->
+        {% endblock %}
+    </div>
+
+    {% block extra_block %}
+    {% endblock %}
+
+    <!-- Modal Create Post -->
+    <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createModalLabel">Create Post</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <form id="create-form" class="modal-body" enctype="multipart/form-data">
+                    <!-- Step 1: Drop Zone -->
+                    <div id="step1">
+                        <div class="mb-3">
+                            <div id="dropZone" class="drop-zone">
+                                <span class="drop-zone__prompt">Drag photos or videos here</span>
+                            </div>
+                            <!-- Hidden file input -->
+                            <input name="file" id="file" type="file" class="d-none" required
+                                accept=".png, .jpg, .jpeg, .gif, video/*" />
+                        </div>
+                    </div>
+                    <!-- Step 2: Description -->
+                    <div id="step2" class="d-none">
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea name="description" id="description" class="form-control" rows="3"
+                                required></textarea>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success">Post</button>
+                        </div>
+                    </div>
+                    <div id="createError" class="mt-2 text-danger d-none">
+                        Error when creating
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script src="/static/js/base.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

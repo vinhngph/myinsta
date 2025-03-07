@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Validate password match for Password và Confirm
+    // Validate password match for Password and Confirm
     const passwordInput = document.getElementById("regPassword");
     const confirmInput = document.getElementById("regConfirm");
     function validatePasswordMatch() {
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
         step1.classList.add("active");
     });
 
-    // Validate Username dùng API
+    // Validate Username using API
     const usernameInput = document.getElementById("regUsername");
     usernameInput.addEventListener("blur", async function () {
         const username = usernameInput.value.trim();

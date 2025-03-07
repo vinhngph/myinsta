@@ -1,0 +1,49 @@
+const limit = 9;
+let offset = 0;
+let isLoading = false;
+
+async function loadPosts() {
+    if (isLoading) return;
+    isLoading = true;
+    const params = new URLSearchParams({ l: limit, o: offset });
+    try {
+        const response = await fetch(`/api/me/posts?${params.toString()}`, {
+            method: "GET",
+            headers: { Accept: "application/json" }
+        });
+        if (!response.ok) throw new Error(response.status);
+        const data = await response.json();
+        if (data.length === 0) {
+            window.removeEventListener("scroll", scrollHandler);
+            return;
+        }
+        const postsRow = document.getElementById("user-posts");
+        data.forEach(post => {
+            const col = document.createElement("div");
+            col.className = "col-6 col-md-4 post";
+            const ratioDiv = document.createElement("div");
+            ratioDiv.className = "ratio ratio-1x1";
+            const img = document.createElement("img");
+            img.src = post.attachment;
+            img.alt = "Post image";
+            img.className = "img-fluid";
+            img.style.objectFit = "cover";
+            ratioDiv.appendChild(img);
+            col.appendChild(ratioDiv);
+            postsRow.appendChild(col);
+        });
+        offset += limit;
+    } catch (error) {
+        console.error(error);
+    } finally {
+        isLoading = false;
+    }
+}
+
+function scrollHandler() {
+    if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2) {
+        loadPosts();
+    }
+}
+window.addEventListener("scroll", scrollHandler);
+loadPosts();
