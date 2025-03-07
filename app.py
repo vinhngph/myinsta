@@ -210,7 +210,10 @@ def post():
 @app.route("/me")
 @login_required
 def me(user):
-    return render_template("me.html", user=user)
+    count_posts = db.execute(
+        "SELECT COUNT(id) AS count FROM posts WHERE user_id=?", (user["id"],)
+    )[0]["count"]
+    return render_template("me.html", user=user, count_posts=count_posts)
 
 
 @app.route("/cdn")

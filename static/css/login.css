@@ -89,3 +89,10 @@ body {
     color: #74caff;
     text-decoration: underline;
 }
+
+.copyright {
+    font-size: 0.8rem;
+    color: #aaa;
+    text-align: center;
+    margin-top: 1rem;
+}
