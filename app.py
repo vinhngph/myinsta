@@ -312,7 +312,8 @@ def user_posts():
 
 # User profile
 @app.route("/<path:path>")
-def profile(path):
+@login_required
+def profile(user, path):
     user_id = db.execute("SELECT id FROM users WHERE username=?", (str(path),))
     if not user_id:
         abort(404)
@@ -326,5 +327,5 @@ def profile(path):
         0
     ]["name"]
 
-    user = {"username": str(path), "name": name, "count_posts": count_posts}
-    return render_template("profile.html", user=user)
+    profile = {"username": str(path), "name": name, "count_posts": count_posts}
+    return render_template("profile.html", profile=profile, user=user)
