@@ -37,3 +37,7 @@
     color: #aaa;
     font-size: 0.85rem;
 }
+
+#previewImage {
+    max-height: 90vh;
+}

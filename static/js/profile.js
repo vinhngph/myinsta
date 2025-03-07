@@ -29,12 +29,13 @@ async function loadPosts() {
             col.className = "col-6 col-md-4 post";
 
             const ratioDiv = document.createElement("div");
-            ratioDiv.className = "ratio ratio-1x1";
+            ratioDiv.className = "ratio";
+            ratioDiv.style.aspectRatio = 4/5;
 
             const img = document.createElement("img");
             img.src = post.attachment;
             img.alt = "Post image";
-            img.className = "img-fluid";
+            img.className = "img-fluid rounded";
             img.style.objectFit = "cover";
             img.addEventListener("click", () => {
                 previewImage.src = post.attachment;

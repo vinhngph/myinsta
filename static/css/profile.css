@@ -66,3 +66,7 @@
 .img-fluid {
     cursor: pointer;
 }
+
+#previewImage {
+    max-height: 90vh;
+}
