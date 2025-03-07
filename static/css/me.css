@@ -62,3 +62,7 @@
     border-radius: 8px;
     overflow: hidden;
 }
+
+.img-fluid {
+    cursor: pointer;
+}

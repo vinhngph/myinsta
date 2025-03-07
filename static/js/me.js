@@ -17,17 +17,30 @@ async function loadPosts() {
             window.removeEventListener("scroll", scrollHandler);
             return;
         }
+
+        // Preview post
+        const previewModalEl = document.getElementById("previewModal");
+        const previewModal = new bootstrap.Modal(previewModalEl);
+        const previewImage = document.getElementById("previewImage");
+
         const postsRow = document.getElementById("user-posts");
         data.forEach(post => {
             const col = document.createElement("div");
             col.className = "col-6 col-md-4 post";
+
             const ratioDiv = document.createElement("div");
             ratioDiv.className = "ratio ratio-1x1";
+
             const img = document.createElement("img");
             img.src = post.attachment;
             img.alt = "Post image";
             img.className = "img-fluid";
             img.style.objectFit = "cover";
+            img.addEventListener("click", () => {
+                previewImage.src = post.attachment;
+                previewModal.show();
+            })
+
             ratioDiv.appendChild(img);
             col.appendChild(ratioDiv);
             postsRow.appendChild(col);
