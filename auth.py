@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import request, jsonify
+from flask import request, redirect
 
 import utils
 
@@ -11,7 +11,7 @@ def login_required(f):
         user = utils.jwt_token_valid(token=token) if token else None  # Valid token
 
         if not user:
-            return jsonify({"message": "Please login!"}), 401  # Unauthorized
+            return redirect("/login")
 
         return f(user, *args, **kwargs)  # Return `user` into route
 

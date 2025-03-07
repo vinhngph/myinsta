@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="/static/css/me.css">
+<link rel="stylesheet" href="/static/css/profile.css">
 {% endblock %}
 
 {% block main %}
@@ -9,7 +9,7 @@
     <div class="user-username">@{{ user.username }}</div>
     <div class="user-name">{{ user.name }}</div>
     <div class="user-interactions">
-        <div class="count-posts">{{ count_posts }} posts</div>
+        <div class="count-posts">{{ user.count_posts }} posts</div>
         <div class="count-followers">10 followers</div>
         <div class="count-following">11 following</div>
     </div>
@@ -35,5 +35,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/me.js"></script>
+<script src="/static/js/profile.js"></script>
 {% endblock %}

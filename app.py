@@ -207,15 +207,6 @@ def post():
             return "", 500
 
 
-@app.route("/me")
-@login_required
-def me(user):
-    count_posts = db.execute(
-        "SELECT COUNT(id) AS count FROM posts WHERE user_id=?", (user["id"],)
-    )[0]["count"]
-    return render_template("me.html", user=user, count_posts=count_posts)
-
-
 @app.route("/cdn")
 def cdn():
     id = request.args.get("id")
@@ -290,28 +281,50 @@ def home_post(_):
         return jsonify({"message": "Server error"}), 500
 
 
-@app.route("/api/me/posts")
-@login_required
-def user_posts(user):
+@app.route("/api/user/posts")
+def user_posts():
     # Parameters
     limit = request.args.get("l")
     offset = request.args.get("o")
-    if not limit or not offset:
-        return jsonify({"message": "missing limit or offset"}), 400
+    username = request.args.get("u")
+    if not limit or not offset or not username:
+        abort(400)
     # ----------------------------------------------------------------
     # Get user's posts
     try:
+        user_id = db.execute("SELECT id FROM users WHERE username=?", (username,))
+        if not user_id:
+            abort(404)
+        user_id = user_id[0]["id"]
         posts = db.execute(
             "SELECT p.id, p.description, p.created_on FROM posts AS p WHERE p.user_id=? LIMIT ? OFFSET ?",
-            (user["id"], limit, offset),
+            (user_id, limit, offset),
         )
-
         if not posts:
-            return jsonify({"message": "Not found"}), 404
+            abort(404)
 
         for post in posts:
             post["attachment"] = url_for("cdn", id=post["id"], _external=True)
-
-        return jsonify(posts), 200
+        return jsonify(posts)
     except:
-        return jsonify({"message": "Server error"}), 500
+        return abort(404)
+
+
+# User profile
+@app.route("/<path:path>")
+def profile(path):
+    user_id = db.execute("SELECT id FROM users WHERE username=?", (str(path),))
+    if not user_id:
+        abort(404)
+    user_id = user_id[0]["id"]
+
+    count_posts = db.execute(
+        "SELECT COUNT(id) AS count FROM posts WHERE user_id=?", (user_id,)
+    )[0]["count"]
+
+    name = db.execute("SELECT name FROM user_informations WHERE user_id=?", (user_id,))[
+        0
+    ]["name"]
+
+    user = {"username": str(path), "name": name, "count_posts": count_posts}
+    return render_template("profile.html", user=user)

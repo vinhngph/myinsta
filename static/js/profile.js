@@ -5,9 +5,9 @@ let isLoading = false;
 async function loadPosts() {
     if (isLoading) return;
     isLoading = true;
-    const params = new URLSearchParams({ l: limit, o: offset });
+    const params = new URLSearchParams({ l: limit, o: offset, u: window.location.pathname.split("/")[1] });
     try {
-        const response = await fetch(`/api/me/posts?${params.toString()}`, {
+        const response = await fetch(`/api/user/posts?${params.toString()}`, {
             method: "GET",
             headers: { Accept: "application/json" }
         });
