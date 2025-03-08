@@ -264,8 +264,8 @@ def home_post(user):
 
     try:
         posts = db.execute(
-            "SELECT p.id, p.description, p.created_on, u.username, p.user_id FROM posts AS p JOIN users AS u ON p.user_id=u.id LIMIT ? OFFSET ?",
-            (limit, offset),
+            "SELECT p.id, p.description, p.created_on, u.username, p.user_id FROM posts AS p JOIN users AS u ON p.user_id=u.id JOIN user_follow AS uf ON p.user_id=uf.following WHERE uf.follower=? LIMIT ? OFFSET ?",
+            (user["id"], limit, offset),
         )
         if not posts:
             return jsonify({"message": "Not found"}), 404
