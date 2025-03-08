@@ -9,6 +9,7 @@ from flask import (
     jsonify,
     url_for,
 )
+from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import dotenv
@@ -23,6 +24,8 @@ dotenv.load_dotenv()
 db = SQL("database.db")
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = str(os.getenv("SECRET_KEY"))
+socketio = SocketIO(app=app)
 
 CONTENT_FOLDER = os.getenv("CONTENT_FOLDER")
 os.makedirs(CONTENT_FOLDER, exist_ok=True)
@@ -261,7 +264,7 @@ def valid_username():
 
 @app.route("/api/home")
 @login_required
-def home_post(_):
+def home_post(user):
     limit = request.args.get("limit")
     offset = request.args.get("offset")
     if not limit or not offset:
@@ -269,13 +272,23 @@ def home_post(_):
 
     try:
         posts = db.execute(
-            "SELECT p.id, p.description, p.created_on, u.username FROM posts AS p JOIN users AS u ON p.user_id=u.id LIMIT ? OFFSET ?",
+            "SELECT p.id, p.description, p.created_on, u.username, p.user_id FROM posts AS p JOIN users AS u ON p.user_id=u.id LIMIT ? OFFSET ?",
             (limit, offset),
         )
         if not posts:
             return jsonify({"message": "Not found"}), 404
         for post in posts:
             post["attachment"] = url_for("cdn", id=post["id"], _external=True)
+
+            is_liked = (
+                True
+                if db.execute(
+                    "SELECT user_id FROM post_likes WHERE user_id=? AND post_id=?",
+                    (user["id"], post["id"]),
+                )
+                else False
+            )
+            post["is_liked"] = is_liked
         return jsonify(posts), 200
     except:
         return jsonify({"message": "Server error"}), 500
@@ -310,6 +323,35 @@ def user_posts():
         return abort(404)
 
 
+@app.route("/api/post/like", methods=["PUT"])
+@login_required
+def post_like(user):
+    post_id = request.get_json()
+    post_id = post_id.get("pid") if post_id else None
+    if not post_id:
+        abort(400)
+
+    try:
+        if db.execute(
+            "SELECT user_id FROM post_likes WHERE user_id=? AND post_id=?",
+            (user["id"], post_id),
+        ):
+            db.execute(
+                "DELETE FROM post_likes WHERE user_id=? AND post_id=?",
+                (user["id"], post_id),
+            )
+            return "", 201
+        else:
+            db.execute(
+                "INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)",
+                (post_id, user["id"]),
+            )
+            return "", 200
+    except Exception as e:
+        app.logger.error(e)
+        abort(500)
+
+
 # User profile
 @app.route("/<path:path>")
 @login_required
@@ -329,3 +371,7 @@ def profile(user, path):
 
     profile = {"username": str(path), "name": name, "count_posts": count_posts}
     return render_template("profile.html", profile=profile, user=user)
+
+
+if __name__ == "__main__":
+    socketio.run(app=app, debug=True)

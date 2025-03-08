@@ -88,8 +88,32 @@ async function loadPosts() {
             small.innerText = new Date(value.created_on + " UTC").toLocaleString();
             created_on.appendChild(small);
 
+            const like_btn = document.createElement("button");
+            like_btn.className = "bg-transparent border border-0";
+            like_btn.innerHTML = value.is_liked ? '<i class="bi bi-heart-fill text-danger"></i>' : '<i class="bi bi-heart text-white"></i>';
+            like_btn.addEventListener("click", async () => {
+                const data = { pid: value.id };
+                const resp = await fetch(`/api/post/like`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                if (!resp.ok) {
+                    throw new Error(resp.status);
+                }
+                if (resp.status === 200) {
+                    like_btn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>';
+                } else {
+                    like_btn.innerHTML = '<i class="bi bi-heart text-white"></i>';
+                }
+            });
+
             cardBody.appendChild(description);
             cardBody.appendChild(created_on);
+            cardBody.appendChild(like_btn);
 
             // Append to card
             card.appendChild(cardHeader);
