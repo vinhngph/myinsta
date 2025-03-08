@@ -10,9 +10,14 @@
     <div class="user-name">{{ profile.name }}</div>
     <div class="user-interactions">
         <div class="count-posts">{{ profile.count_posts }} posts</div>
-        <div class="count-followers">10 followers</div>
-        <div class="count-following">11 following</div>
+        <div class="count-followers">{{ profile.followers }} followers</div>
+        <div class="count-following">{{ profile.following }} following</div>
     </div>
+    {% if profile.relationship %}
+    <button
+        class="profile-action mt-2 btn {% if profile.relationship == 'Follow' %}btn-outline-light{% else %}btn-outline-info{% endif %}"
+        user_id="{{ profile.id }}">{{ profile.relationship }}</button>
+    {% endif %}
 </div>
 <!-- Posts Grid -->
 <div class="posts-grid container">

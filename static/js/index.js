@@ -36,8 +36,9 @@ async function loadPosts() {
             // Card header contains author
             const cardHeader = document.createElement("div");
             cardHeader.className = "card-header d-flex align-items-center";
-            const author = document.createElement("h6");
-            author.className = "mb-0";
+            const author = document.createElement("a");
+            author.className = "mb-0 text-decoration-none text-light";
+            author.href = "/" + value.username;
             author.innerText = "@" + value.username;
             cardHeader.appendChild(author);
 

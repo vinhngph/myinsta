@@ -30,7 +30,7 @@ async function loadPosts() {
 
             const ratioDiv = document.createElement("div");
             ratioDiv.className = "ratio";
-            ratioDiv.style.aspectRatio = 4/5;
+            ratioDiv.style.aspectRatio = 4 / 5;
 
             const img = document.createElement("img");
             img.src = post.attachment;
@@ -61,3 +61,28 @@ function scrollHandler() {
 }
 window.addEventListener("scroll", scrollHandler);
 loadPosts();
+
+document.querySelector(".profile-action").addEventListener("click", async () => {
+    const data = { following: document.querySelector(".profile-action").getAttribute("user_id") };
+    const resp = await fetch("/api/user/follow", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+        },
+        body: JSON.stringify(data)
+    })
+    if (!resp.ok) return;
+
+    const result = await resp.json();
+    document.querySelector(".count-followers").innerText = result.followers + " followers";
+    document.querySelector(".count-following").innerText = result.following + " following";
+    if (result.state === "Follow") {
+        document.querySelector(".profile-action").classList.remove("btn-outline-info");
+        document.querySelector(".profile-action").classList.add("btn-outline-light");
+    } else {
+        document.querySelector(".profile-action").classList.remove("btn-outline-light");
+        document.querySelector(".profile-action").classList.add("btn-outline-info");
+    }
+    document.querySelector(".profile-action").innerText = result.state;
+});

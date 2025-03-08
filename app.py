@@ -9,7 +9,6 @@ from flask import (
     jsonify,
     url_for,
 )
-from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import dotenv
@@ -24,8 +23,6 @@ dotenv.load_dotenv()
 db = SQL("database.db")
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = str(os.getenv("SECRET_KEY"))
-socketio = SocketIO(app=app)
 
 CONTENT_FOLDER = os.getenv("CONTENT_FOLDER")
 os.makedirs(CONTENT_FOLDER, exist_ok=True)
@@ -170,13 +167,8 @@ def logout():
 
 # Features
 @app.route("/post", methods=["GET", "POST", "PUT", "DELETE"])
-def post():
-    # Require login
-    if not (token := request.cookies.get("auth_token")) or not (
-        user := utils.jwt_token_valid(token=token)
-    ):
-        return jsonify({"message": "Please login!"}), 401
-
+@login_required
+def post(user):
     if request.method == "POST":
         # Handle file upload
         file = request.files["file"]
@@ -323,6 +315,61 @@ def user_posts():
         return abort(404)
 
 
+@app.route("/api/user/follow", methods=["PUT"])
+@login_required
+def user_follow(user):
+    if not (following := request.get_json()):
+        abort(400)
+    following = following.get("following")
+    follower = user["id"]
+
+    # Cannot follow themself
+    if follower == following:
+        abort(400)
+
+    try:
+        # Current state between them
+        if db.execute(
+            "SELECT following FROM user_follow WHERE follower=? AND following=?",
+            (follower, following),
+        ):
+            # User wants to unfollow
+            db.execute(
+                "DELETE FROM user_follow WHERE follower=? AND following=?",
+                (follower, following),
+            )
+            state = "Follow"
+        else:
+            # User wants to follow
+            db.execute(
+                "INSERT INTO user_follow (follower, following) VALUES (?, ?)",
+                (follower, following),
+            )
+            state = "Following"
+    except:
+        abort(500)
+
+    count_followers = db.execute(
+        "SELECT COUNT(follower) AS followers FROM user_follow WHERE following=?",
+        (following,),
+    )[0]["followers"]
+    count_following = db.execute(
+        "SELECT COUNT(following) AS following FROM user_follow WHERE follower=?",
+        (following,),
+    )[0]["following"]
+
+    return (
+        jsonify(
+            {
+                "followers": count_followers,
+                "following": count_following,
+                "state": state,
+            }
+        ),
+        200,
+    )
+
+
 @app.route("/api/post/like", methods=["PUT"])
 @login_required
 def post_like(user):
@@ -369,9 +416,34 @@ def profile(user, path):
         0
     ]["name"]
 
-    profile = {"username": str(path), "name": name, "count_posts": count_posts}
+    if user["id"] != user_id:
+        relationship = (
+            "Following"
+            if db.execute(
+                "SELECT follower FROM user_follow WHERE follower=? AND following=?",
+                (user["id"], user_id),
+            )
+            else "Follow"
+        )
+    else:
+        relationship = ""
+
+    count_followers = db.execute(
+        "SELECT COUNT(follower) AS followers FROM user_follow WHERE following=?",
+        (user_id,),
+    )[0]["followers"]
+    count_following = db.execute(
+        "SELECT COUNT(following) AS following FROM user_follow WHERE follower=?",
+        (user_id,),
+    )[0]["following"]
+
+    profile = {
+        "id": user_id,
+        "username": str(path),
+        "name": name,
+        "count_posts": count_posts,
+        "relationship": relationship,
+        "followers": count_followers,
+        "following": count_following,
+    }
     return render_template("profile.html", profile=profile, user=user)
-
-
-if __name__ == "__main__":
-    socketio.run(app=app, debug=True)

@@ -14,6 +14,14 @@ CREATE TABLE user_informations (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE user_follow (
+    follower INTEGER NOT NULL,
+    following INTEGER NOT NULL,
+    FOREIGN KEY (follower) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (following) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE (follower, following)
+);
+
 CREATE TABLE posts (
     id TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL,
