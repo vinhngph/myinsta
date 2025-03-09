@@ -399,6 +399,52 @@ def post_like(user):
         abort(500)
 
 
+@app.route("/api/post/comments", methods=["GET", "PUT"])
+@login_required
+def post_comment(user):
+    if request.method == "GET":
+        if not (post_id := request.args.get("pid")):
+            abort(400)
+
+        try:
+            rs = db.execute(
+                "SELECT u.username, uc.content FROM post_comments AS pc JOIN user_comments AS uc ON pc.comment_id=uc.id JOIN users AS u ON uc.user_id=u.id WHERE pc.post_id=?",
+                (post_id,),
+            )
+            return jsonify(rs), 200
+        except:
+            abort(500)
+
+    if request.method == "PUT":
+        data = request.get_json()
+        if not data:
+            abort(400)
+        post_id = data.get("pid")
+        if not post_id:
+            abort(400)
+        content = data.get("content")
+        if not content:
+            abort(400)
+
+        cmt_id = utils.generate_unique_comment_id(db=db)
+        user_id = user["id"]
+
+        try:
+            # Store the comment
+            db.execute(
+                "INSERT INTO user_comments (id, user_id, content) VALUES (?, ?, ?)",
+                (cmt_id, user_id, content),
+            )
+            # Link to the post
+            db.execute(
+                "INSERT INTO post_comments (post_id, comment_id) VALUES (?, ?)",
+                (post_id, cmt_id),
+            )
+            return "", 200
+        except:
+            abort(500)
+
+
 @app.route("/api/search")
 def search():
     query = request.args.get("q")

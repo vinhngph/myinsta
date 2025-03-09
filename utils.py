@@ -19,7 +19,8 @@ def jwt_token_valid(token):
         return False
     except jwt.InvalidTokenError:
         return False
-    
+
+
 def generate_unique_post_id(db):
     while True:
         file_id = str(uuid.uuid4())
@@ -27,3 +28,12 @@ def generate_unique_post_id(db):
 
         if not result:
             return file_id
+
+
+def generate_unique_comment_id(db):
+    while True:
+        comment_id = str(uuid.uuid4())
+        result = db.execute("SELECT * FROM user_comments WHERE id=?", (comment_id,))
+
+        if not result:
+            return comment_id

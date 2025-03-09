@@ -1,9 +1,10 @@
-// Infinite scroll variables
+// -------------------------------
+// Infinite Scroll and Post Rendering
+// -------------------------------
 let offset = 0;
 const limit = 5;
 let isLoading = false;
 
-// Load posts function
 async function loadPosts() {
     if (isLoading) return;
     isLoading = true;
@@ -17,32 +18,26 @@ async function loadPosts() {
             throw new Error(response.status);
         }
         const data = await response.json();
-
         if (data.length === 0) {
             window.removeEventListener("scroll", scrollHandler);
             return;
         }
-
-        const previewModalEl = document.getElementById("previewModal");
-        const previewModal = new bootstrap.Modal(previewModalEl);
-        const previewImage = document.getElementById("previewImage");
         const div_content = document.getElementById("content");
-
         data.forEach((value) => {
             // Create card
             const card = document.createElement("div");
-            card.className = "card post-card text-light";
+            card.className = "card post-card text-light mb-3";
 
-            // Card header contains author
+            // Card header: Author link
             const cardHeader = document.createElement("div");
             cardHeader.className = "card-header d-flex align-items-center";
-            const author = document.createElement("a");
-            author.className = "mb-0 text-decoration-none text-light";
-            author.href = "/" + value.username;
-            author.innerText = "@" + value.username;
-            cardHeader.appendChild(author);
+            const authorLink = document.createElement("a");
+            authorLink.className = "mb-0 text-decoration-none text-light";
+            authorLink.href = "/" + value.username;
+            authorLink.innerText = "@" + value.username;
+            cardHeader.appendChild(authorLink);
 
-            // Attachment
+            // Attachment: Post image (use ratio for square preview)
             const ratioDiv = document.createElement("div");
             ratioDiv.className = "ratio ratio-1x1";
             const img = document.createElement("img");
@@ -50,16 +45,15 @@ async function loadPosts() {
             img.src = value.attachment;
             img.alt = "Post image";
             img.addEventListener("click", () => {
-                previewImage.src = value.attachment;
-                previewModal.show();
+                openPostModal(value);
             });
             ratioDiv.appendChild(img);
 
-            // Card body (description and time)
+            // Card body: Description, created time, action icons, comment input
             const cardBody = document.createElement("div");
             cardBody.className = "card-body p-2";
 
-            // Handle description with "Read more"
+            // Description with "Read more"
             const description = document.createElement("p");
             description.className = "card-text mb-1";
             const charLimit = 100;
@@ -67,7 +61,6 @@ async function loadPosts() {
                 const descriptionSpan = document.createElement("span");
                 descriptionSpan.innerText = value.description.substring(0, charLimit) + "... ";
                 description.appendChild(descriptionSpan);
-
                 const readMoreLink = document.createElement("a");
                 readMoreLink.href = "#";
                 readMoreLink.innerText = "Read more";
@@ -89,19 +82,27 @@ async function loadPosts() {
             small.innerText = new Date(value.created_on + " UTC").toLocaleString();
             created_on.appendChild(small);
 
+            // Action icons row: Like and Comment icon buttons
+            const actionRow = document.createElement("div");
+            actionRow.className = "d-flex align-items-center action-icons mb-2";
+
+            // Like button
             const like_btn = document.createElement("button");
-            like_btn.className = "bg-transparent border border-0";
-            like_btn.innerHTML = value.is_liked ? '<i class="bi bi-heart-fill text-danger"></i>' : '<i class="bi bi-heart text-white"></i>';
+            like_btn.className = "btn btn-link p-0 me-2";
+            like_btn.setAttribute("data-post-id", value.id);
+            like_btn.innerHTML = value.is_liked
+                ? '<i class="bi bi-heart-fill text-danger"></i>'
+                : '<i class="bi bi-heart text-white"></i>';
             like_btn.addEventListener("click", async () => {
-                const data = { pid: value.id };
+                const dataToSend = { pid: value.id };
                 const resp = await fetch(`/api/post/like`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
                         Accept: "application/json"
                     },
-                    body: JSON.stringify(data)
-                })
+                    body: JSON.stringify(dataToSend)
+                });
                 if (!resp.ok) {
                     throw new Error(resp.status);
                 }
@@ -112,11 +113,61 @@ async function loadPosts() {
                 }
             });
 
+            // Comment icon button
+            const comment_icon = document.createElement("button");
+            comment_icon.className = "btn btn-link p-0";
+            comment_icon.setAttribute("data-post-id", value.id);
+            comment_icon.innerHTML = '<i class="bi bi-chat-dots text-white"></i>';
+            comment_icon.addEventListener("click", () => {
+                openPostModal(value);
+            });
+            actionRow.appendChild(like_btn);
+            actionRow.appendChild(comment_icon);
+
+            // Comment input group below the post
+            const commentInputGroup = document.createElement("div");
+            commentInputGroup.className = "input-group comment-input-group";
+
+            const commentInput = document.createElement("input");
+            commentInput.type = "text";
+            commentInput.className = "form-control";
+            commentInput.placeholder = "Add a comment...";
+
+            const commentSubmitBtn = document.createElement("button");
+            commentSubmitBtn.className = "btn btn-outline-info";
+            commentSubmitBtn.innerHTML = '<i class="bi bi-arrow-right-square"></i>';
+            commentSubmitBtn.addEventListener("click", async () => {
+                const content = commentInput.value.trim();
+                if (!content) return;
+                try {
+                    const dataToSend = { pid: value.id, content: content };
+                    const resp = await fetch("/api/post/comments", {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json"
+                        },
+                        body: JSON.stringify(dataToSend)
+                    });
+                    if (resp.status === 200) {
+                        commentInput.value = "";
+                    } else {
+                        throw new Error(resp.status);
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+            commentInputGroup.appendChild(commentInput);
+            commentInputGroup.appendChild(commentSubmitBtn);
+
+            // Append all parts into card body
             cardBody.appendChild(description);
             cardBody.appendChild(created_on);
-            cardBody.appendChild(like_btn);
+            cardBody.appendChild(actionRow);
+            cardBody.appendChild(commentInputGroup);
 
-            // Append to card
+            // Append header, image, body to card
             card.appendChild(cardHeader);
             card.appendChild(ratioDiv);
             card.appendChild(cardBody);
@@ -133,11 +184,144 @@ async function loadPosts() {
 // Load first posts
 loadPosts();
 
-// Handle scrolling
+// Handle scrolling for infinite scroll
 function scrollHandler() {
     if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2) {
         loadPosts();
     }
 }
-
 window.addEventListener("scroll", scrollHandler);
+
+// -------------------------------
+// Post Modal Implementation (Combined Preview and Comment)
+// -------------------------------
+function openPostModal(post) {
+    // Lấy các phần tử modal
+    const postModalEl = document.getElementById("postModal");
+    const postModal = new bootstrap.Modal(postModalEl);
+    const postModalImage = document.getElementById("postModalImage");
+    const postModalAuthor = document.getElementById("postModalAuthor");
+    const postModalDescription = document.getElementById("postModalDescription");
+    const postModalLikeBtn = document.getElementById("postModalLikeBtn");
+    const postModalComments = document.getElementById("postModalComments");
+    const commentInput = document.getElementById("postModalCommentInput");
+
+    // Set ảnh bài post
+    postModalImage.src = post.attachment;
+
+    // Thiết lập thông tin tác giả (link)
+    postModalAuthor.innerHTML = `<a href="/${post.username}" class="text-decoration-none text-light">@${post.username}</a>`;
+
+    // Thiết lập mô tả với logic "Read more"
+    const charLimit = 150; // Độ dài giới hạn
+    if (post.description.length > charLimit) {
+        // Nếu mô tả quá dài, hiển thị phiên bản rút gọn
+        const truncatedText = post.description.substring(0, charLimit) + "... ";
+        postModalDescription.innerHTML = truncatedText;
+        const readMoreLink = document.createElement("a");
+        readMoreLink.href = "#";
+        readMoreLink.innerText = "Read more";
+        readMoreLink.className = "read-more-link";
+        readMoreLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            // Khi click, hiển thị toàn bộ mô tả
+            postModalDescription.innerText = post.description;
+        });
+        postModalDescription.appendChild(readMoreLink);
+    } else {
+        // Nếu mô tả không quá dài, hiển thị toàn bộ
+        postModalDescription.innerText = post.description;
+    }
+
+    // Thiết lập nút like dựa vào trạng thái
+    if (post.is_liked) {
+        postModalLikeBtn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>';
+    } else {
+        postModalLikeBtn.innerHTML = '<i class="bi bi-heart text-white"></i>';
+    }
+    // Sự kiện cho nút like
+    postModalLikeBtn.onclick = async () => {
+        const dataToSend = { pid: post.id };
+        try {
+            const resp = await fetch("/api/post/like", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify(dataToSend)
+            });
+            if (!resp.ok) throw new Error(resp.status);
+            post.is_liked = !post.is_liked;
+            if (post.is_liked) {
+                postModalLikeBtn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>';
+            } else {
+                postModalLikeBtn.innerHTML = '<i class="bi bi-heart text-white"></i>';
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // Load comments cho bài post
+    async function loadComments() {
+        postModalComments.innerHTML = "<p class='text-center text-muted'>Loading comments...</p>";
+        try {
+            const response = await fetch("/api/post/comments?pid=" + post.id, {
+                method: "GET",
+                headers: { Accept: "application/json" }
+            });
+            if (!response.ok) throw new Error(response.status);
+            const comments = await response.json();
+            if (comments.length === 0) {
+                postModalComments.innerHTML = "<p class='text-center text-white'>No comments yet.</p>";
+            } else {
+                postModalComments.innerHTML = "";
+                comments.forEach(comment => {
+                    const commentItem = document.createElement("div");
+                    commentItem.innerHTML = `<strong>@${comment.username}</strong>: ${comment.content}`;
+                    postModalComments.appendChild(commentItem);
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            postModalComments.innerHTML = "<p class='text-center text-danger'>Error loading comments.</p>";
+        }
+    }
+    loadComments();
+
+    // Sự kiện cho nút gửi comment trong modal
+    const commentSubmitBtn = document.getElementById("postModalCommentSubmit");
+    commentSubmitBtn.onclick = async () => {
+        const content = commentInput.value.trim();
+        if (!content) return;
+        try {
+            const dataToSend = { pid: post.id, content: content };
+            const resp = await fetch("/api/post/comments", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify(dataToSend)
+            });
+            if (resp.status === 200) {
+                commentInput.value = "";
+                loadComments(); // Tải lại comment sau khi gửi thành công
+            } else {
+                throw new Error(resp.status);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // Hiển thị modal
+    postModal.show();
+}
+
+
+// -------------------------------
+// Socket.io for Comment update
+// -------------------------------
+const socket = io();
