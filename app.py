@@ -399,6 +399,17 @@ def post_like(user):
         abort(500)
 
 
+@app.route("/api/search")
+def search():
+    query = request.args.get("q")
+    if not query:
+        abort(400)
+
+    rs = db.execute("SELECT username FROM users WHERE username LIKE ?", (query + "%",))
+
+    return jsonify(rs)
+
+
 # User profile
 @app.route("/<path:path>")
 @login_required

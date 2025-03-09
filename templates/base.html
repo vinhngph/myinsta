@@ -9,6 +9,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/static/css/base.css">
     {% block extra_css %} {% endblock %}
 </head>
@@ -17,10 +18,22 @@
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column align-items-center">
         <a class="myinsta-logo" href="/">myinsta</a>
-        <a class="user-profile-link mb-3" href="/{{ user.username }}">@{{ user.username }}</a>
-        <button id="btnCreate" class="btn btn-outline-success w-100">Create</button>
+        <a class="user-profile-link" href="/{{ user.username }}">@{{ user.username }}</a>
+
+        <button id="btnCreate" class="btn btn-outline-success w-100 mt-5"><i class="bi bi-plus-square"></i></button>
+
+        <!-- Button Search -->
+        <button id="btnSearch" class="btn btn-outline-info w-100 mt-3"><i class="bi bi-search"></i></button>
+
+        <!-- Hidden search container -->
+        <div id="searchContainer" class="search-container collapse mt-2 w-100">
+            <!-- Search input -->
+            <input id="searchInput" type="text" class="search-input" placeholder="Search..." autocomplete="off">
+            <!-- Search results -->
+            <div id="searchResults" class="search-results"></div>
+        </div>
         <div class="mt-auto w-100">
-            <a href="/logout" class="btn btn-outline-secondary w-100">Logout</a>
+            <a href="/logout" class="btn btn-outline-secondary w-100"><i class="bi bi-box-arrow-left"></i></a>
             <footer>
                 <small>&copy; 2025 Nguyen Phuc Vinh. All rights reserved.</small>
             </footer>
