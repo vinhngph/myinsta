@@ -158,6 +158,14 @@ async function loadPosts() {
                     console.error(error);
                 }
             });
+            // comment input submit when Enter
+            commentInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    commentSubmitBtn.click();
+                }
+            })
+
             commentInputGroup.appendChild(commentInput);
             commentInputGroup.appendChild(commentSubmitBtn);
 
@@ -196,7 +204,7 @@ window.addEventListener("scroll", scrollHandler);
 // Post Modal Implementation (Combined Preview and Comment)
 // -------------------------------
 function openPostModal(post) {
-    // Lấy các phần tử modal
+    // Get modal elements
     const postModalEl = document.getElementById("postModal");
     const postModal = new bootstrap.Modal(postModalEl);
     const postModalImage = document.getElementById("postModalImage");
@@ -206,16 +214,15 @@ function openPostModal(post) {
     const postModalComments = document.getElementById("postModalComments");
     const commentInput = document.getElementById("postModalCommentInput");
 
-    // Set ảnh bài post
+    // Post's image
     postModalImage.src = post.attachment;
 
-    // Thiết lập thông tin tác giả (link)
+    // Post's data
     postModalAuthor.innerHTML = `<a href="/${post.username}" class="text-decoration-none text-light">@${post.username}</a>`;
 
-    // Thiết lập mô tả với logic "Read more"
-    const charLimit = 150; // Độ dài giới hạn
+    // Post's description
+    const charLimit = 150; // Length limit
     if (post.description.length > charLimit) {
-        // Nếu mô tả quá dài, hiển thị phiên bản rút gọn
         const truncatedText = post.description.substring(0, charLimit) + "... ";
         postModalDescription.innerHTML = truncatedText;
         const readMoreLink = document.createElement("a");
@@ -224,22 +231,20 @@ function openPostModal(post) {
         readMoreLink.className = "read-more-link";
         readMoreLink.addEventListener("click", (e) => {
             e.preventDefault();
-            // Khi click, hiển thị toàn bộ mô tả
             postModalDescription.innerText = post.description;
         });
         postModalDescription.appendChild(readMoreLink);
     } else {
-        // Nếu mô tả không quá dài, hiển thị toàn bộ
+        // If don't reach limit, show full description
         postModalDescription.innerText = post.description;
     }
 
-    // Thiết lập nút like dựa vào trạng thái
+    // Initial like buuton
     if (post.is_liked) {
         postModalLikeBtn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>';
     } else {
         postModalLikeBtn.innerHTML = '<i class="bi bi-heart text-white"></i>';
     }
-    // Sự kiện cho nút like
     postModalLikeBtn.onclick = async () => {
         const dataToSend = { pid: post.id };
         try {
@@ -263,8 +268,9 @@ function openPostModal(post) {
         }
     };
 
-    // Load comments cho bài post
-    async function loadComments() {
+    // Load post's comments
+    (async function () {
+        postModalComments.setAttribute("comment-modal-id", post.id);
         postModalComments.innerHTML = "<p class='text-center text-muted'>Loading comments...</p>";
         try {
             const response = await fetch("/api/post/comments?pid=" + post.id, {
@@ -287,10 +293,9 @@ function openPostModal(post) {
             console.error(error);
             postModalComments.innerHTML = "<p class='text-center text-danger'>Error loading comments.</p>";
         }
-    }
-    loadComments();
+    })();
 
-    // Sự kiện cho nút gửi comment trong modal
+    // Comment submit button
     const commentSubmitBtn = document.getElementById("postModalCommentSubmit");
     commentSubmitBtn.onclick = async () => {
         const content = commentInput.value.trim();
@@ -307,7 +312,6 @@ function openPostModal(post) {
             });
             if (resp.status === 200) {
                 commentInput.value = "";
-                loadComments(); // Tải lại comment sau khi gửi thành công
             } else {
                 throw new Error(resp.status);
             }
@@ -316,12 +320,25 @@ function openPostModal(post) {
         }
     };
 
-    // Hiển thị modal
+    commentInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            commentSubmitBtn.click();
+        }
+    })
+
+    // Modal show
     postModal.show();
 }
-
 
 // -------------------------------
 // Socket.io for Comment update
 // -------------------------------
 const socket = io();
+socket.on("post_comments", (data) => {
+    const modal = document.querySelector(`[comment-modal-id="${data.pid}"]`);
+
+    const commentItem = document.createElement("div");
+    commentItem.innerHTML = `<strong>@${data.username}</strong>: ${data.content}`;
+    modal.appendChild(commentItem);
+})

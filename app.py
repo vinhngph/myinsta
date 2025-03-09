@@ -13,6 +13,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import dotenv
 from email_validator import validate_email, EmailNotValidError
+from flask_socketio import SocketIO, emit
 
 from sql import SQL
 import utils
@@ -23,6 +24,8 @@ dotenv.load_dotenv()
 db = SQL("database.db")
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+socketio = SocketIO(app=app)
 
 CONTENT_FOLDER = os.getenv("CONTENT_FOLDER")
 os.makedirs(CONTENT_FOLDER, exist_ok=True)
@@ -440,6 +443,12 @@ def post_comment(user):
                 "INSERT INTO post_comments (post_id, comment_id) VALUES (?, ?)",
                 (post_id, cmt_id),
             )
+
+            socketio.emit(
+                "post_comments",
+                {"pid": post_id, "username": user["username"], "content": content},
+            )
+
             return "", 200
         except:
             abort(500)
@@ -504,3 +513,7 @@ def profile(user, path):
         "following": count_following,
     }
     return render_template("profile.html", profile=profile, user=user)
+
+
+if __name__ == "__main__":
+    socketio.run(app=app, debug=True)

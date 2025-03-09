@@ -41,3 +41,50 @@
 #previewImage {
     max-height: 90vh;
 }
+
+/* Modal Post */
+#postModal .modal-body {
+    padding: 0;
+}
+
+#postModal .modal-body .row {
+    margin: 0;
+}
+
+/* Left column: image */
+#postModalImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    max-height: 80vh;
+}
+
+/* Right column: details, scrollable */
+#postModalDetails {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#postModal .modal-content {
+    border-radius: 8px;
+}
+
+#postModalComments div {
+    padding: 0.5rem;
+    border-bottom: 1px solid #444;
+}
+
+#postModalComments div:last-child {
+    border-bottom: none;
+}
+
+#postModalComments {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+#postModalDescription {
+    white-space: normal;
+    word-wrap: break-word;
+}
