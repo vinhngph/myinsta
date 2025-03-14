@@ -60,8 +60,8 @@
                                 <div class="input-group">
                                     <input type="text" id="postModalCommentInput" class="form-control"
                                         placeholder="Add a comment...">
-                                    <button type="submit" class="btn btn-outline-info" id="postModalCommentSubmit">
-                                        <i class="bi bi-arrow-right-square"></i>
+                                    <button type="submit" class="btn btn-secondary" id="postModalCommentSubmit">
+                                        <i class="bi bi-send-fill"></i>
                                     </button>
                                 </div>
                             </form>
@@ -75,5 +75,8 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
+    integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
+    crossorigin="anonymous"></script>
 <script src="/static/js/profile.js"></script>
 {% endblock %}

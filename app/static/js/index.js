@@ -137,8 +137,8 @@ async function loadPosts() {
 
             const commentSubmitBtn = document.createElement("button");
             commentSubmitBtn.type = "submit";
-            commentSubmitBtn.className = "btn btn-outline-info";
-            commentSubmitBtn.innerHTML = '<i class="bi bi-arrow-right-square"></i>';
+            commentSubmitBtn.className = "btn btn-secondary";
+            commentSubmitBtn.innerHTML = '<i class="bi bi-send-fill text-white"></i>';
 
             commentForm.addEventListener("submit", async (e) => {
                 e.preventDefault();

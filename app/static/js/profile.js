@@ -200,3 +200,18 @@ document.querySelector(".profile-action")?.addEventListener("click", async () =>
     }
     document.querySelector(".profile-action").innerText = result.state;
 });
+
+// -------------------------------
+// Socket.io for Comment update
+// -------------------------------
+const socket = io();
+socket.on("post_comments", (data) => {
+    if (document.getElementById("no-comment")) document.getElementById("no-comment").remove();
+
+    const modal = document.querySelector(`[comment-modal-id="${data.pid}"]`);
+    if (!modal) return;
+
+    const commentItem = document.createElement("div");
+    commentItem.innerHTML = `<strong>@${data.username}</strong>: ${data.content}`;
+    modal.appendChild(commentItem);
+})
