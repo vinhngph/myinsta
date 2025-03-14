@@ -1,14 +1,13 @@
 from functools import wraps
 from flask import request, redirect
-
-import utils
+from app.utils.jwt import jwt_token_valid
 
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         token = request.cookies.get("auth_token")
-        user = utils.jwt_token_valid(token=token) if token else None  # Valid token
+        user = jwt_token_valid(token=token) if token else None  # Valid token
 
         if not user:
             return redirect("/login")

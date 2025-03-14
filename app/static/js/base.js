@@ -38,7 +38,7 @@ createForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(createForm);
     try {
-        const response = await fetch("/post", {
+        const response = await fetch("/api/post", {
             method: "POST",
             body: formData,
         });
