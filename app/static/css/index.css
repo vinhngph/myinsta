@@ -88,3 +88,23 @@
     white-space: normal;
     word-wrap: break-word;
 }
+
+/* input comment */
+.comment-input-group .form-control,
+#postModalCommentInput {
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    color: #fff;
+}
+
+.comment-input-group .form-control:focus,
+#postModalCommentInput:focus {
+    background-color: #2c2c2c;
+    border-color: #4db5ff;
+    color: #fff;
+}
+
+.comment-input-group .form-control::placeholder,
+#postModalCommentInput::placeholder {
+    color: #aaa;
+}
