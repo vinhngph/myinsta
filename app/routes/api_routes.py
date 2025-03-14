@@ -36,11 +36,14 @@ def home_post(user):
 
 
 @api_bp.route("/user/posts")
-def user_posts():
+@login_required
+def user_posts(user):
     limit = request.args.get("l")
     offset = request.args.get("o")
     username = request.args.get("u")
-    return PostServices.get_user_posts(username=username, limit=limit, offset=offset)
+    return PostServices.get_user_posts(
+        user=user, username=username, limit=limit, offset=offset
+    )
 
 
 @api_bp.route("/user/follow", methods=["PUT"])

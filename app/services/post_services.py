@@ -70,8 +70,8 @@ class PostServices:
             return jsonify({"message": "Server error."}), 500
 
     @staticmethod
-    def get_user_posts(username, limit, offset):
-        if not limit or not offset or not username:
+    def get_user_posts(user, username, limit, offset):
+        if not limit or not offset or not username or not user:
             return jsonify({"message": "Missing parameters."}), 400
         # ----------------------------------------------------------------
         # Get user's posts
@@ -85,12 +85,21 @@ class PostServices:
                 (user_id, limit, offset),
             )
             if not posts:
-                return jsonify({"message": "Posts not found."}), 404
-
+                return jsonify({"message": "Posts not found."}), 40
+            
             for post in posts:
                 post["attachment"] = url_for(
                     "cdn_bp.attachment", id=post["id"], _external=True
                 )
+                is_liked = (
+                    True
+                    if db.execute(
+                        "SELECT user_id FROM post_likes WHERE user_id=? AND post_id=?",
+                        (user["id"], post["id"]),
+                    )
+                    else False
+                )
+                post["is_liked"] = is_liked
             return jsonify(posts)
         except:
             return jsonify({"message": "Server error."}), 500
