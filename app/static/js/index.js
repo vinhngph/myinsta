@@ -205,6 +205,12 @@ function changeLikeStatus(btn, stauts) {
         ? btn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>'
         : btn.innerHTML = '<i class="bi bi-heart text-white"></i>';
 }
+function updateOutsideLikeBtn(postId, status) {
+    const likeBtnOutside = document.querySelector(`button[data-post-id="${postId}"]`);
+    if (likeBtnOutside) {
+        changeLikeStatus(likeBtnOutside, status);
+    }
+}
 
 // -------------------------------
 // Post Modal Implementation (Combined Preview and Comment)
@@ -262,6 +268,7 @@ function openPostModal(post) {
             const data = await resp.json();
             post.is_liked = data.status;
             changeLikeStatus(postModalLikeBtn, data.status);
+            updateOutsideLikeBtn(post.id, data.status);
         } catch (error) {
             console.error(error);
         }
