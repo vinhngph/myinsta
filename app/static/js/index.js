@@ -280,7 +280,7 @@ function openPostModal(post) {
             if (!response.ok) throw new Error(response.status);
             const comments = await response.json();
             if (comments.length === 0) {
-                postModalComments.innerHTML = "<p class='text-center text-white'>No comments yet.</p>";
+                postModalComments.innerHTML = "<p class='text-center text-white' id='no-comment'>No comments yet.</p>";
             } else {
                 postModalComments.innerHTML = "";
                 comments.forEach(comment => {
@@ -336,6 +336,8 @@ function openPostModal(post) {
 // -------------------------------
 const socket = io();
 socket.on("post_comments", (data) => {
+    if (document.getElementById("no-comment")) document.getElementById("no-comment").remove();
+
     const modal = document.querySelector(`[comment-modal-id="${data.pid}"]`);
 
     const commentItem = document.createElement("div");
