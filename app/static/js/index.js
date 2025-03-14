@@ -90,9 +90,8 @@ async function loadPosts() {
             const like_btn = document.createElement("button");
             like_btn.className = "btn btn-link p-0 me-2";
             like_btn.setAttribute("data-post-id", value.id);
-            like_btn.innerHTML = value.is_liked
-                ? '<i class="bi bi-heart-fill text-danger"></i>'
-                : '<i class="bi bi-heart text-white"></i>';
+            changeLikeStatus(like_btn, value.is_liked);
+
             like_btn.addEventListener("click", async () => {
                 const dataToSend = { pid: value.id };
                 const resp = await fetch(`/api/post/like`, {
@@ -106,11 +105,10 @@ async function loadPosts() {
                 if (!resp.ok) {
                     throw new Error(resp.status);
                 }
-                if (resp.status === 200) {
-                    like_btn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>';
-                } else {
-                    like_btn.innerHTML = '<i class="bi bi-heart text-white"></i>';
-                }
+
+                const data = await resp.json();
+                value.is_liked = data.status;
+                changeLikeStatus(like_btn, data.status);
             });
 
             // Comment icon button
@@ -124,6 +122,10 @@ async function loadPosts() {
             actionRow.appendChild(like_btn);
             actionRow.appendChild(comment_icon);
 
+
+            const commentForm = document.createElement("form");
+            commentForm.className = "form-floating";
+
             // Comment input group below the post
             const commentInputGroup = document.createElement("div");
             commentInputGroup.className = "input-group comment-input-group";
@@ -134,11 +136,15 @@ async function loadPosts() {
             commentInput.placeholder = "Add a comment...";
 
             const commentSubmitBtn = document.createElement("button");
+            commentSubmitBtn.type = "submit";
             commentSubmitBtn.className = "btn btn-outline-info";
             commentSubmitBtn.innerHTML = '<i class="bi bi-arrow-right-square"></i>';
-            commentSubmitBtn.addEventListener("click", async () => {
+
+            commentForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
                 const content = commentInput.value.trim();
                 if (!content) return;
+
                 try {
                     const dataToSend = { pid: value.id, content: content };
                     const resp = await fetch("/api/post/comments", {
@@ -149,31 +155,25 @@ async function loadPosts() {
                         },
                         body: JSON.stringify(dataToSend)
                     });
-                    if (resp.status === 200) {
+                    if (resp.ok) {
                         commentInput.value = "";
                     } else {
                         throw new Error(resp.status);
                     }
                 } catch (error) {
-                    console.error(error);
+                    console.error(error)
                 }
             });
-            // comment input submit when Enter
-            commentInput.addEventListener("keydown", (e) => {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    commentSubmitBtn.click();
-                }
-            })
 
             commentInputGroup.appendChild(commentInput);
             commentInputGroup.appendChild(commentSubmitBtn);
+            commentForm.appendChild(commentInputGroup);
 
             // Append all parts into card body
             cardBody.appendChild(description);
             cardBody.appendChild(created_on);
             cardBody.appendChild(actionRow);
-            cardBody.appendChild(commentInputGroup);
+            cardBody.appendChild(commentForm);
 
             // Append header, image, body to card
             card.appendChild(cardHeader);
@@ -199,6 +199,12 @@ function scrollHandler() {
     }
 }
 window.addEventListener("scroll", scrollHandler);
+
+function changeLikeStatus(btn, stauts) {
+    return stauts
+        ? btn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>'
+        : btn.innerHTML = '<i class="bi bi-heart text-white"></i>';
+}
 
 // -------------------------------
 // Post Modal Implementation (Combined Preview and Comment)
@@ -240,11 +246,7 @@ function openPostModal(post) {
     }
 
     // Initial like buuton
-    if (post.is_liked) {
-        postModalLikeBtn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>';
-    } else {
-        postModalLikeBtn.innerHTML = '<i class="bi bi-heart text-white"></i>';
-    }
+    changeLikeStatus(postModalLikeBtn, post.is_liked);
     postModalLikeBtn.onclick = async () => {
         const dataToSend = { pid: post.id };
         try {
@@ -257,12 +259,9 @@ function openPostModal(post) {
                 body: JSON.stringify(dataToSend)
             });
             if (!resp.ok) throw new Error(resp.status);
-            post.is_liked = !post.is_liked;
-            if (post.is_liked) {
-                postModalLikeBtn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>';
-            } else {
-                postModalLikeBtn.innerHTML = '<i class="bi bi-heart text-white"></i>';
-            }
+            const data = await resp.json();
+            post.is_liked = data.status;
+            changeLikeStatus(postModalLikeBtn, data.status);
         } catch (error) {
             console.error(error);
         }
@@ -295,11 +294,11 @@ function openPostModal(post) {
         }
     })();
 
-    // Comment submit button
-    const commentSubmitBtn = document.getElementById("postModalCommentSubmit");
-    commentSubmitBtn.onclick = async () => {
+    document.getElementById("postModalForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
         const content = commentInput.value.trim();
         if (!content) return;
+
         try {
             const dataToSend = { pid: post.id, content: content };
             const resp = await fetch("/api/post/comments", {
@@ -310,20 +309,13 @@ function openPostModal(post) {
                 },
                 body: JSON.stringify(dataToSend)
             });
-            if (resp.status === 200) {
+            if (resp.ok) {
                 commentInput.value = "";
             } else {
                 throw new Error(resp.status);
             }
         } catch (error) {
-            console.error(error);
-        }
-    };
-
-    commentInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            commentSubmitBtn.click();
+            console.error(error)
         }
     })
 
@@ -339,6 +331,7 @@ socket.on("post_comments", (data) => {
     if (document.getElementById("no-comment")) document.getElementById("no-comment").remove();
 
     const modal = document.querySelector(`[comment-modal-id="${data.pid}"]`);
+    if (!modal) return;
 
     const commentItem = document.createElement("div");
     commentItem.innerHTML = `<strong>@${data.username}</strong>: ${data.content}`;

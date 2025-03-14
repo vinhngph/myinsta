@@ -112,13 +112,13 @@ class PostServices:
                     "DELETE FROM post_likes WHERE user_id=? AND post_id=?",
                     (user["id"], post_id),
                 )
-                return jsonify({"message": "Unlike"}), 200
+                return jsonify({"pid": post_id, "status": False}), 200
             else:
                 db.execute(
                     "INSERT INTO post_likes (post_id, user_id) VALUES (?, ?)",
                     (post_id, user["id"]),
                 )
-                return jsonify({"message": "Like"}), 200
+                return jsonify({"pid": post_id, "status": True}), 200
         except Exception as e:
             return jsonify({"message": "Server error."}), 500
 
