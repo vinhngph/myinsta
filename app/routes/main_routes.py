@@ -19,7 +19,15 @@ def login():
         return redirect("/")
     else:
         response = make_response(render_template("login.html"))
-        response.set_cookie("auth_token", "", expires=0, max_age=0)
+        response.set_cookie(
+            "auth_token",
+            "",
+            expires=0,
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+            max_age=0,
+        )
         return response
 
 
@@ -29,7 +37,15 @@ def register():
         return redirect("/")
     else:
         response = make_response(render_template("register.html"))
-        response.set_cookie("auth_token", "", expires=0, max_age=0)
+        response.set_cookie(
+            "auth_token",
+            "",
+            expires=0,
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+            max_age=0,
+        )
         return response
 
 

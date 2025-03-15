@@ -38,7 +38,6 @@ class UserServices:
             samesite="Strict",
             max_age=3600,
         )
-        print("check")
         return response
 
     @staticmethod
@@ -106,7 +105,15 @@ class UserServices:
     @staticmethod
     def logout():
         response = make_response(redirect("/"))
-        response.set_cookie("auth_token", expires=0, max_age=0)
+        response.set_cookie(
+            "auth_token",
+            "",
+            expires=0,
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+            max_age=0,
+        )
         return response
 
     @staticmethod
