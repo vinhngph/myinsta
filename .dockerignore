@@ -1,0 +1,11 @@
+.env.example
+.vscode
+.venv
+__pycache__
+
+*.db
+
+contents
+
+Dockerfile
+README.md

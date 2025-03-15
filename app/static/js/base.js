@@ -221,65 +221,107 @@ function openPostModal(post) {
     const postModalComments = document.getElementById("postModalComments");
     const commentInput = document.getElementById("postModalCommentInput");
 
-    // Post details
-    postModalImage.src = post.image_url;
-    postModalAuthor.innerHTML = `<strong>@${post.author}</strong>`;
-    postModalDescription.innerHTML = post.description;
-    changeLikeStatus(postModalLikeBtn, post.liked);
+    // Post's image
+    postModalImage.src = post.attachment;
 
-    // Like button click
-    postModalLikeBtn.addEventListener("click", async () => {
-        const newStatus = !post.liked;
+    // Post's data
+    postModalAuthor.innerHTML = `<a href="/${post.username}" class="text-decoration-none text-light">@${post.username}</a>`;
+
+    // Post's description
+    const charLimit = 150; // Length limit
+    if (post.description.length > charLimit) {
+        const truncatedText = post.description.substring(0, charLimit) + "... ";
+        postModalDescription.innerHTML = truncatedText;
+        const readMoreLink = document.createElement("a");
+        readMoreLink.href = "#";
+        readMoreLink.innerText = "Read more";
+        readMoreLink.className = "read-more-link";
+        readMoreLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            postModalDescription.innerText = post.description;
+        });
+        postModalDescription.appendChild(readMoreLink);
+    } else {
+        // If don't reach limit, show full description
+        postModalDescription.innerText = post.description;
+    }
+
+    // Initial like buuton
+    changeLikeStatus(postModalLikeBtn, post.is_liked);
+    postModalLikeBtn.onclick = async () => {
+        const dataToSend = { pid: post.id };
         try {
-            const response = await fetch(`/api/post/${post.id}/like`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ liked: newStatus })
+            const resp = await fetch("/api/post/like", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify(dataToSend)
             });
-            if (response.ok) {
-                post.liked = newStatus;
-                changeLikeStatus(postModalLikeBtn, newStatus);
-                updateOutsideLikeBtn(post.id, newStatus);
-            }
+            if (!resp.ok) throw new Error(resp.status);
+            const data = await resp.json();
+            post.is_liked = data.status;
+            changeLikeStatus(postModalLikeBtn, data.status);
+            updateOutsideLikeBtn(post.id, data.status);
         } catch (error) {
             console.error(error);
         }
-    });
+    };
 
-    // Load comments
-    postModalComments.innerHTML = "";
-    post.comments.forEach(comment => {
-        const commentEl = document.createElement("div");
-        commentEl.className = "mb-2";
-        commentEl.innerHTML = `<strong>@${comment.author}</strong>: ${comment.text}`;
-        postModalComments.appendChild(commentEl);
-    });
+    // Load post's comments
+    (async function () {
+        postModalComments.setAttribute("comment-modal-id", post.id);
+        postModalComments.innerHTML = "<p class='text-center text-muted'>Loading comments...</p>";
+        try {
+            const response = await fetch("/api/post/comments?pid=" + post.id, {
+                method: "GET",
+                headers: { Accept: "application/json" }
+            });
+            if (!response.ok) throw new Error(response.status);
+            const comments = await response.json();
+            if (comments.length === 0) {
+                postModalComments.innerHTML = "<p class='text-center text-white' id='no-comment'>No comments yet.</p>";
+            } else {
+                postModalComments.innerHTML = "";
+                comments.forEach(comment => {
+                    const commentItem = document.createElement("div");
+                    commentItem.innerHTML = `<strong>@${comment.username}</strong>: ${comment.content}`;
+                    postModalComments.appendChild(commentItem);
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            postModalComments.innerHTML = "<p class='text-center text-danger'>Error loading comments.</p>";
+        }
+    })();
 
-    // Submit comment
     document.getElementById("postModalForm").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const commentText = commentInput.value.trim();
-        if (!commentText) return;
+        const content = commentInput.value.trim();
+        if (!content) return;
+
         try {
-            const response = await fetch(`/api/post/${post.id}/comment`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: commentText })
+            const dataToSend = { pid: post.id, content: content };
+            const resp = await fetch("/api/post/comments", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify(dataToSend)
             });
-            if (response.ok) {
-                const newComment = await response.json();
-                const commentEl = document.createElement("div");
-                commentEl.className = "mb-2";
-                commentEl.innerHTML = `<strong>@${newComment.author}</strong>: ${newComment.text}`;
-                postModalComments.appendChild(commentEl);
+            if (resp.ok) {
                 commentInput.value = "";
+            } else {
+                throw new Error(resp.status);
             }
         } catch (error) {
-            console.error(error);
+            console.error(error)
         }
-    });
+    })
 
-    // Show modal
+    // Modal show
     postModal.show();
 }
 

@@ -10,4 +10,4 @@ os.makedirs(
 app = create_app()
 
 if __name__ == "__main__":
-    socketio.run(app=app, debug=True)
+    socketio.run(app=app, debug=Config.DEBUG, port=5000, host="0.0.0.0")
