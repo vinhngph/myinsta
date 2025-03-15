@@ -46,6 +46,8 @@ textarea.addEventListener("input", function () {
 createForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(createForm);
+    const submitButton = createForm.querySelector("button[type='submit']");
+    submitButton.disabled = true;
     try {
         const response = await fetch("/api/post", {
             method: "POST",
@@ -58,6 +60,8 @@ createForm.addEventListener("submit", async (e) => {
         }
     } catch (error) {
         createError.classList.remove("d-none");
+    } finally {
+        submitButton.disabled = false;
     }
 });
 
