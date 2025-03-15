@@ -8,6 +8,10 @@
 <div class="content-wrapper" id="content"></div>
 {% endblock %}
 
+{% block nav_action %}
+<a class="nav-link text-light" href="/{{ user.username }}"><i class="bi bi-person"></i></a>
+{% endblock %}
+
 {% block extra_js %}
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
     integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"

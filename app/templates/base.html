@@ -46,7 +46,8 @@
             <a class="nav-link text-light" href="/"><i class="bi bi-house-door"></i></a>
             <a class="nav-link text-light" href="#" id="btnSearchMobile"><i class="bi bi-search"></i></a>
             <a class="nav-link text-light" href="#" id="btnCreateMobile"><i class="bi bi-plus-square"></i></a>
-            <a class="nav-link text-light" href="/{{ user.username }}"><i class="bi bi-person"></i></a>
+            {% block nav_action %}
+            {% endblock %}
         </div>
     </nav>
 
