@@ -45,10 +45,16 @@ class PostServices:
             return jsonify({"message": "missing limit or offset"}), 400
 
         try:
-            posts = db.execute(
+            following_posts = db.execute(
                 "SELECT p.id, p.description, p.created_on, u.username, p.user_id FROM posts AS p JOIN users AS u ON p.user_id=u.id JOIN user_follow AS uf ON p.user_id=uf.following WHERE uf.follower=? LIMIT ? OFFSET ?",
                 (user["id"], limit, offset),
             )
+            remain_posts = db.execute(
+                "SELECT p.id, p.description, p.created_on, u.username, p.user_id FROM posts AS p JOIN users AS u ON p.user_id=u.id WHERE p.user_id IN (SELECT id FROM users WHERE users.id NOT IN (SELECT following FROM user_follow WHERE follower=1) AND users.id != ?) LIMIT ? OFFSET ?",
+                (user["id"], limit, offset),
+            )
+
+            posts = following_posts + remain_posts
             if not posts:
                 return jsonify({"message": "Not found"}), 204
             for post in posts:
