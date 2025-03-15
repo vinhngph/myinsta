@@ -1,6 +1,7 @@
 // Modal Create Post
 const createModal = new bootstrap.Modal(document.getElementById("createModal"));
 const btnCreate = document.getElementById("btnCreate");
+const btnCreateMobile = document.getElementById("btnCreateMobile");
 const step1 = document.getElementById("step1");
 const step2 = document.getElementById("step2");
 const createForm = document.getElementById("create-form");
@@ -13,6 +14,14 @@ document.getElementById("dropZone").addEventListener("click", () => {
 
 // Show modal Create Post
 btnCreate.addEventListener("click", () => {
+    createForm.reset();
+    step1.classList.remove("d-none");
+    step2.classList.add("d-none");
+    createError.classList.add("d-none");
+    createModal.show();
+});
+
+btnCreateMobile.addEventListener("click", () => {
     createForm.reset();
     step1.classList.remove("d-none");
     step2.classList.add("d-none");
@@ -128,7 +137,7 @@ searchInput.addEventListener("keydown", (e) => {
     const items = Array.from(searchResults.getElementsByClassName("search-result-item"));
     if (e.key === "ArrowDown") {
         e.preventDefault();
-        // Increase active index, not over the search reults
+        // Increase active index, not over the search results
         activeResultIndex = Math.min(activeResultIndex + 1, items.length - 1);
         updateActiveResult(items);
     } else if (e.key === "ArrowUp") {
@@ -169,7 +178,7 @@ document.addEventListener("keydown", (e) => {
         searchCollapse.hide();
         sidebar.classList.remove("expanded");
     }
-    // Search shotcut
+    // Search shortcut
     if (e.ctrlKey && e.key.toLowerCase() === "s") {
         e.preventDefault();
         if (!searchContainer.classList.contains("show")) {
@@ -186,8 +195,8 @@ document.addEventListener("keydown", (e) => {
 // -------------------------------
 // Additional functions
 // -------------------------------
-function changeLikeStatus(btn, stauts) {
-    return stauts
+function changeLikeStatus(btn, status) {
+    return status
         ? btn.innerHTML = '<i class="bi bi-heart-fill text-danger"></i>'
         : btn.innerHTML = '<i class="bi bi-heart text-white"></i>';
 }
@@ -212,106 +221,158 @@ function openPostModal(post) {
     const postModalComments = document.getElementById("postModalComments");
     const commentInput = document.getElementById("postModalCommentInput");
 
-    // Post's image
-    postModalImage.src = post.attachment;
+    // Post details
+    postModalImage.src = post.image_url;
+    postModalAuthor.innerHTML = `<strong>@${post.author}</strong>`;
+    postModalDescription.innerHTML = post.description;
+    changeLikeStatus(postModalLikeBtn, post.liked);
 
-    // Post's data
-    postModalAuthor.innerHTML = `<a href="/${post.username}" class="text-decoration-none text-light">@${post.username}</a>`;
-
-    // Post's description
-    const charLimit = 150; // Length limit
-    if (post.description.length > charLimit) {
-        const truncatedText = post.description.substring(0, charLimit) + "... ";
-        postModalDescription.innerHTML = truncatedText;
-        const readMoreLink = document.createElement("a");
-        readMoreLink.href = "#";
-        readMoreLink.innerText = "Read more";
-        readMoreLink.className = "read-more-link";
-        readMoreLink.addEventListener("click", (e) => {
-            e.preventDefault();
-            postModalDescription.innerText = post.description;
-        });
-        postModalDescription.appendChild(readMoreLink);
-    } else {
-        // If don't reach limit, show full description
-        postModalDescription.innerText = post.description;
-    }
-
-    // Initial like buuton
-    changeLikeStatus(postModalLikeBtn, post.is_liked);
-    postModalLikeBtn.onclick = async () => {
-        const dataToSend = { pid: post.id };
+    // Like button click
+    postModalLikeBtn.addEventListener("click", async () => {
+        const newStatus = !post.liked;
         try {
-            const resp = await fetch("/api/post/like", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json"
-                },
-                body: JSON.stringify(dataToSend)
+            const response = await fetch(`/api/post/${post.id}/like`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ liked: newStatus })
             });
-            if (!resp.ok) throw new Error(resp.status);
-            const data = await resp.json();
-            post.is_liked = data.status;
-            changeLikeStatus(postModalLikeBtn, data.status);
-            updateOutsideLikeBtn(post.id, data.status);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    // Load post's comments
-    (async function () {
-        postModalComments.setAttribute("comment-modal-id", post.id);
-        postModalComments.innerHTML = "<p class='text-center text-muted'>Loading comments...</p>";
-        try {
-            const response = await fetch("/api/post/comments?pid=" + post.id, {
-                method: "GET",
-                headers: { Accept: "application/json" }
-            });
-            if (!response.ok) throw new Error(response.status);
-            const comments = await response.json();
-            if (comments.length === 0) {
-                postModalComments.innerHTML = "<p class='text-center text-white' id='no-comment'>No comments yet.</p>";
-            } else {
-                postModalComments.innerHTML = "";
-                comments.forEach(comment => {
-                    const commentItem = document.createElement("div");
-                    commentItem.innerHTML = `<strong>@${comment.username}</strong>: ${comment.content}`;
-                    postModalComments.appendChild(commentItem);
-                });
+            if (response.ok) {
+                post.liked = newStatus;
+                changeLikeStatus(postModalLikeBtn, newStatus);
+                updateOutsideLikeBtn(post.id, newStatus);
             }
         } catch (error) {
             console.error(error);
-            postModalComments.innerHTML = "<p class='text-center text-danger'>Error loading comments.</p>";
         }
-    })();
+    });
 
+    // Load comments
+    postModalComments.innerHTML = "";
+    post.comments.forEach(comment => {
+        const commentEl = document.createElement("div");
+        commentEl.className = "mb-2";
+        commentEl.innerHTML = `<strong>@${comment.author}</strong>: ${comment.text}`;
+        postModalComments.appendChild(commentEl);
+    });
+
+    // Submit comment
     document.getElementById("postModalForm").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const content = commentInput.value.trim();
-        if (!content) return;
-
+        const commentText = commentInput.value.trim();
+        if (!commentText) return;
         try {
-            const dataToSend = { pid: post.id, content: content };
-            const resp = await fetch("/api/post/comments", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json"
-                },
-                body: JSON.stringify(dataToSend)
+            const response = await fetch(`/api/post/${post.id}/comment`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: commentText })
             });
-            if (resp.ok) {
+            if (response.ok) {
+                const newComment = await response.json();
+                const commentEl = document.createElement("div");
+                commentEl.className = "mb-2";
+                commentEl.innerHTML = `<strong>@${newComment.author}</strong>: ${newComment.text}`;
+                postModalComments.appendChild(commentEl);
                 commentInput.value = "";
-            } else {
-                throw new Error(resp.status);
             }
         } catch (error) {
-            console.error(error)
+            console.error(error);
         }
-    })
+    });
 
-    // Modal show
+    // Show modal
     postModal.show();
+}
+
+// -------------------------------------
+// Modal Search for Mobile
+// -------------------------------------
+// Modal Search for Mobile
+const searchModal = new bootstrap.Modal(document.getElementById("searchModal"));
+const searchInputMobile = document.getElementById("searchInputMobile");
+const searchResultsMobile = document.getElementById("searchResultsMobile");
+
+btnSearchMobile.addEventListener("click", () => {
+    searchModal.show();
+    searchModal._element.addEventListener("shown.bs.modal", () => {
+        searchInputMobile.focus();
+    }, { once: true });
+});
+
+searchInputMobile.addEventListener("input", (e) => {
+    const query = e.target.value.trim();
+    performSearchMobile(query);
+});
+
+searchInputMobile.addEventListener("keydown", (e) => {
+    const items = Array.from(searchResultsMobile.getElementsByClassName("search-result-item"));
+    if (e.key === "ArrowDown") {
+        e.preventDefault();
+        // Increase active index, not over the search results
+        activeResultIndex = Math.min(activeResultIndex + 1, items.length - 1);
+        updateActiveResultMobile(items);
+    } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        // Decrease active index, not lower than 0
+        activeResultIndex = Math.max(activeResultIndex - 1, 0);
+        updateActiveResultMobile(items);
+    } else if (e.key === "Enter") {
+        e.preventDefault();
+        // Choose first result if Enter
+        if (items.length > 0) {
+            const chosenIndex = activeResultIndex >= 0 ? activeResultIndex : 0;
+            const chosenItem = items[chosenIndex];
+            if (chosenItem) {
+                window.location.href = "/" + chosenItem.getAttribute("data-username");
+            }
+        }
+    }
+});
+
+async function performSearchMobile(query) {
+    if (!query) {
+        searchResultsMobile.innerHTML = "";
+        return;
+    }
+    try {
+        const response = await fetch("/api/search?q=" + encodeURIComponent(query), {
+            method: "GET",
+            headers: { Accept: "application/json" }
+        });
+        if (!response.ok) {
+            throw new Error(response.status);
+        }
+        const results = await response.json();
+        renderSearchResultsMobile(results);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function renderSearchResultsMobile(results) {
+    searchResultsMobile.innerHTML = "";
+    activeResultIndex = -1;
+    if (results.length === 0) {
+        searchResultsMobile.innerHTML = "<div class='text-center text-muted'>No results found</div>";
+        return;
+    }
+    results.forEach(result => {
+        const item = document.createElement("div");
+        item.className = "search-result-item";
+        item.setAttribute("data-username", result.username);
+        item.innerHTML = `<strong>@${result.username}</strong>`;
+        item.addEventListener("click", () => {
+            window.location.href = "/" + result.username;
+        });
+        searchResultsMobile.appendChild(item);
+    });
+}
+
+function updateActiveResultMobile(items) {
+    items.forEach((item, index) => {
+        if (index === activeResultIndex) {
+            item.classList.add("active");
+        } else {
+            item.classList.remove("active");
+        }
+    });
 }
