@@ -58,9 +58,7 @@ class PostServices:
             if not posts:
                 return jsonify({"message": "Not found"}), 204
             for post in posts:
-                post["attachment"] = url_for(
-                    "cdn_bp.attachment", id=post["id"], _external=True
-                )
+                post["attachment"] = url_for("cdn_bp.attachment", id=post["id"])
 
                 is_liked = (
                     True
@@ -94,9 +92,7 @@ class PostServices:
                 return jsonify({"message": "Posts not found."}), 204
 
             for post in posts:
-                post["attachment"] = url_for(
-                    "cdn_bp.attachment", id=post["id"], _external=True
-                )
+                post["attachment"] = url_for("cdn_bp.attachment", id=post["id"])
                 is_liked = (
                     True
                     if db.execute(
