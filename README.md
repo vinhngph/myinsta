@@ -22,7 +22,6 @@ The project is organized into several directories and files, each serving a spec
 ### app Directory
 
 - **__init__.py**: Initializes the Flask application, loads configuration settings, and registers blueprints for different routes.
-- **cdn_services.py**: Contains the `CDNServices` class, which handles serving content (images and videos) from the content folder.
 - **extensions.py**: Initializes and configures extensions used in the application, such as the database connection and SocketIO.
 - **routes**: This directory contains route handlers for different parts of the application:
   - **auth_routes.py**: Handles authentication-related routes, including login, registration, and logout.
@@ -30,7 +29,7 @@ The project is organized into several directories and files, each serving a spec
   - **main_routes.py**: Handles the main routes of the application, including the home page and user profiles.
   - **api_routes.py**: Handles API routes for creating posts, validating email and username, fetching posts, following users, liking posts, and commenting on posts.
 - **services**: This directory contains service classes that encapsulate business logic:
-  - **cdn_services.py**: Handles serving content from the content folder.
+  - **cdn_services.py**: Contains the `CDNServices` class, which handles serving content (images and videos) from the content folder.
   - **post_services.py**: Handles operations related to posts, such as creating new posts, fetching posts, liking posts, and fetching comments.
   - **user_services.py**: Handles operations related to users, such as login, registration, logout, following users, and commenting on posts.
 - **static**: This directory contains static files such as CSS, JavaScript, and images:

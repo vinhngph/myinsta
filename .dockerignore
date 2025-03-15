@@ -1,11 +1,14 @@
+.env
 .env.example
 .vscode
 .venv
+.gitignore
 __pycache__
 
 *.db
 
-contents
+project.txt
 
+contents
 Dockerfile
 README.md
