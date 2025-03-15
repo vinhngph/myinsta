@@ -27,53 +27,6 @@
 </div>
 {% endblock %}
 
-{% block extra_block %}
-<div class="modal fade" id="postModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content bg-dark text-light">
-            <div class="modal-body p-0">
-                <div class="row">
-                    <!-- Left Column: Full image -->
-                    <div class="col-md-6 p-2">
-                        <img id="postModalImage" src="" alt="Post image">
-                    </div>
-                    <!-- Right Column: Post details (author, description, actions, comments, comment input) -->
-                    <div class="col-md-6 d-flex flex-column" style="max-height:80vh;">
-                        <!-- Details container -->
-                        <div id="postModalDetails" class="p-3" style="flex:1; overflow-y: auto;">
-                            <!-- Author -->
-                            <div id="postModalAuthor" class="mb-2"></div>
-                            <!-- Description -->
-                            <div id="postModalDescription" class="mb-2"></div>
-                            <!-- Action buttons (like button) -->
-                            <div id="postModalActions" class="mb-2">
-                                <button id="postModalLikeBtn" class="btn btn-link p-0">
-                                    <i class="bi"></i>
-                                </button>
-                            </div>
-                            <!-- Comment list -->
-                            <div id="postModalComments"></div>
-                        </div>
-                        <!-- Comment input group -->
-                        <div class="p-3 border-top">
-                            <form class="form-floating" id="postModalForm">
-                                <div class="input-group">
-                                    <input type="text" id="postModalCommentInput" class="form-control"
-                                        placeholder="Add a comment...">
-                                    <button type="submit" class="btn btn-secondary" id="postModalCommentSubmit">
-                                        <i class="bi bi-send-fill"></i>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
 {% block extra_js %}
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"
     integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
