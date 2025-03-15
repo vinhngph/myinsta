@@ -50,7 +50,7 @@ class PostServices:
                 (user["id"], limit, offset),
             )
             if not posts:
-                return jsonify({"message": "Not found"}), 404
+                return jsonify({"message": "Not found"}), 204
             for post in posts:
                 post["attachment"] = url_for(
                     "cdn_bp.attachment", id=post["id"], _external=True
@@ -81,12 +81,12 @@ class PostServices:
                 return jsonify({"message": "User not found."}), 404
             user_id = user_id[0]["id"]
             posts = db.execute(
-                "SELECT p.id, p.description, p.created_on FROM posts AS p WHERE p.user_id=? LIMIT ? OFFSET ?",
+                "SELECT p.id, p.description, p.created_on, u.username, p.user_id FROM posts AS p JOIN users AS u ON p.user_id=u.id WHERE p.user_id=? LIMIT ? OFFSET ?",
                 (user_id, limit, offset),
             )
             if not posts:
-                return jsonify({"message": "Posts not found."}), 40
-            
+                return jsonify({"message": "Posts not found."}), 204
+
             for post in posts:
                 post["attachment"] = url_for(
                     "cdn_bp.attachment", id=post["id"], _external=True
