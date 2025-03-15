@@ -2,6 +2,27 @@ const limit = 9;
 let offset = 0;
 let isLoading = false;
 
+async function fetchAttachment(url) {
+    const response = await fetch(url);
+    const contentType = response.headers.get("Content-Type");
+
+    if (contentType.startsWith("image/")) {
+        const img = document.createElement("img");
+        img.className = "card-img-top";
+        img.src = url;
+        img.alt = "Post image";
+        return img;
+    } else if (contentType.startsWith("video/")) {
+        const video = document.createElement("video");
+        video.src = url;
+        video.controls = true;
+        video.className = "img-fluid rounded";
+        return video;
+    } else {
+        throw new Error("Unsupported content type");
+    }
+}
+
 async function loadPosts() {
     if (isLoading) return;
     isLoading = true;
@@ -15,24 +36,22 @@ async function loadPosts() {
         if (response.status === 200) {
             const data = await response.json();
             const postsRow = document.getElementById("user-posts");
-            data.forEach(post => {
+            data.forEach(async (value) => {
                 const col = document.createElement("div");
                 col.className = "col-6 col-md-4 post";
 
                 const ratioDiv = document.createElement("div");
-                ratioDiv.className = "ratio";
-                ratioDiv.style.aspectRatio = 4 / 5;
+                ratioDiv.className = "ratio ratio-1x1";
+                try {
+                    const attachment = await fetchAttachment(value.attachment);
+                    attachment.addEventListener("click", () => {
+                        openPostModal(value);
+                    });
+                    ratioDiv.appendChild(attachment);
+                } catch (error) {
+                    console.error("Error loading attachment:", error);
+                }
 
-                const img = document.createElement("img");
-                img.src = post.attachment;
-                img.alt = "Post image";
-                img.className = "img-fluid rounded";
-                img.style.objectFit = "cover";
-                img.addEventListener("click", () => {
-                    openPostModal(post)
-                })
-
-                ratioDiv.appendChild(img);
                 col.appendChild(ratioDiv);
                 postsRow.appendChild(col);
             });

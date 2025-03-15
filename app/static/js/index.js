@@ -5,6 +5,27 @@ let offset = 0;
 const limit = 5;
 let isLoading = false;
 
+async function fetchAttachment(url) {
+    const response = await fetch(url);
+    const contentType = response.headers.get("Content-Type");
+
+    if (contentType.startsWith("image/")) {
+        const img = document.createElement("img");
+        img.className = "card-img-top";
+        img.src = url;
+        img.alt = "Post image";
+        return img;
+    } else if (contentType.startsWith("video/")) {
+        const video = document.createElement("video");
+        video.src = url;
+        video.controls = true;
+        video.className = "img-fluid rounded";
+        return video;
+    } else {
+        throw new Error("Unsupported content type");
+    }
+}
+
 async function loadPosts() {
     if (isLoading) return;
     isLoading = true;
@@ -17,7 +38,7 @@ async function loadPosts() {
         if (response.status === 200) {
             const data = await response.json();
             const div_content = document.getElementById("content");
-            data.forEach((value) => {
+            data.forEach(async (value) => {
                 // Create card
                 const card = document.createElement("div");
                 card.className = "card post-card text-light mb-3";
@@ -34,14 +55,15 @@ async function loadPosts() {
                 // Attachment: Post image (use ratio for square preview)
                 const ratioDiv = document.createElement("div");
                 ratioDiv.className = "ratio ratio-1x1";
-                const img = document.createElement("img");
-                img.className = "card-img-top";
-                img.src = value.attachment;
-                img.alt = "Post image";
-                img.addEventListener("click", () => {
-                    openPostModal(value);
-                });
-                ratioDiv.appendChild(img);
+                try {
+                    const attachment = await fetchAttachment(value.attachment);
+                    attachment.addEventListener("click", () => {
+                        openPostModal(value);
+                    });
+                    ratioDiv.appendChild(attachment);
+                } catch (error) {
+                    console.error("Error loading attachment:", error);
+                }
 
                 // Card body: Description, created time, action icons, comment input
                 const cardBody = document.createElement("div");
