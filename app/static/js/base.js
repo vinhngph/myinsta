@@ -68,7 +68,6 @@ createForm.addEventListener("submit", async (e) => {
 // -------------------------------
 // Search Feature Implementation
 // -------------------------------
-
 const btnSearch = document.getElementById("btnSearch");
 const searchContainer = document.getElementById("searchContainer");
 const searchInput = document.getElementById("searchInput");
@@ -332,15 +331,12 @@ function openPostModal(post) {
 // -------------------------------------
 // Modal Search for Mobile
 // -------------------------------------
-const searchModal = new bootstrap.Modal(document.getElementById("searchModal"));
+const searchModal = document.getElementById("searchModal");
 const searchInputMobile = document.getElementById("searchInputMobile");
 const searchResultsMobile = document.getElementById("searchResultsMobile");
 
-document.getElementById("btnSearchMobile").addEventListener("click", () => {
-    searchModal.show();
-    searchModal._element.addEventListener("shown.bs.modal", () => {
-        searchInputMobile.focus();
-    }, { once: true });
+searchModal.addEventListener("shown.bs.modal", () => {
+    searchInputMobile.focus();
 });
 
 searchInputMobile.addEventListener("input", (e) => {
