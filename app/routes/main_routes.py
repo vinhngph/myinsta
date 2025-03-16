@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, make_response
 
-from app.utils.auth import login_required
+from app.utils.auth import login_required, is_login
 from app.utils.jwt import jwt_token_valid
 from app.services.user_services import UserServices
 
@@ -14,39 +14,15 @@ def home(user):
 
 
 @main_bp.route("/login")
+@is_login
 def login():
-    if jwt_token_valid(request.cookies.get("auth_token")):
-        return redirect("/")
-    else:
-        response = make_response(render_template("login.html"))
-        response.set_cookie(
-            "auth_token",
-            "",
-            expires=0,
-            httponly=True,
-            secure=True,
-            samesite="Strict",
-            max_age=0,
-        )
-        return response
+    return make_response(render_template("login.html"))
 
 
 @main_bp.route("/register")
+@is_login
 def register():
-    if jwt_token_valid(request.cookies.get("auth_token")):
-        return redirect("/")
-    else:
-        response = make_response(render_template("register.html"))
-        response.set_cookie(
-            "auth_token",
-            "",
-            expires=0,
-            httponly=True,
-            secure=True,
-            samesite="Strict",
-            max_age=0,
-        )
-        return response
+    return make_response(render_template("register.html"))
 
 
 @main_bp.route("/<path:path>")
