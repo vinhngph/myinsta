@@ -332,12 +332,11 @@ function openPostModal(post) {
 // -------------------------------------
 // Modal Search for Mobile
 // -------------------------------------
-// Modal Search for Mobile
 const searchModal = new bootstrap.Modal(document.getElementById("searchModal"));
 const searchInputMobile = document.getElementById("searchInputMobile");
 const searchResultsMobile = document.getElementById("searchResultsMobile");
 
-btnSearchMobile.addEventListener("click", () => {
+document.getElementById("btnSearchMobile").addEventListener("click", () => {
     searchModal.show();
     searchModal._element.addEventListener("shown.bs.modal", () => {
         searchInputMobile.focus();
