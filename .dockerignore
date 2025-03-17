@@ -5,10 +5,11 @@
 .gitignore
 __pycache__
 
-*.db
+contents
 
+*.db
 project.txt
 
-contents
+# contents
 Dockerfile
 README.md

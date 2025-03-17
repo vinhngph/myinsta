@@ -1,4 +1,7 @@
 # myinsta
+### Live production: https://myinsta-men1.onrender.com
+#### Video Demo:  https://youtu.be/JjuiS_C2iOg
+#### Description: Below sections
 
 ## Project Overview
 
@@ -34,6 +37,7 @@ The project is organized into several directories and files, each serving a spec
   - **user_services.py**: Handles operations related to users, such as login, registration, logout, following users, and commenting on posts.
 - **static**: This directory contains static files such as CSS, JavaScript, and images:
   - **css**: Contains CSS files for styling different parts of the application.
+  - **img**: Contains images of this website.
   - **js**: Contains JavaScript files for client-side functionality, including handling infinite scroll, post creation, search, and real-time comments.
 - **templates**: This directory contains HTML templates for different pages of the application:
   - **base.html**: The base template that includes common elements such as the sidebar and navigation bar.
