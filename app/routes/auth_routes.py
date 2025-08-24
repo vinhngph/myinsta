@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from app.services.user_services import UserServices
+from app.utils.auth import login_required
 
 auth_bp = Blueprint("auth_bp", __name__)
 
@@ -30,3 +31,9 @@ def register():
 @auth_bp.route("/logout", methods=["GET"])
 def logout():
     return UserServices.logout()
+
+
+@auth_bp.route("/totp-active", methods=["POST"])
+@login_required
+def totp_active(user):
+    return UserServices.enable_totp(user)

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="../static/css/account.css">
+{% endblock %}
+
+{% block main %}
+<div class="content-wrapper" id="content">
+    <div class="container">
+        <div class="row mb-3">
+            <div class="col">
+                <h1 class="text-center">Account</h1>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col input-group">
+                <span class="input-group-text" style="min-width: 17%;">Name</span>
+                <input type="text" name="" id="" class="form-control" placeholder="{{ user.name }}">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col input-group">
+                <span class="input-group-text" style="min-width: 17%;">Username</span>
+                <input type="text" name="" id="" class="form-control" placeholder="{{ user.username }}">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col input-group">
+                <span class="input-group-text" style="min-width: 17%;">Email</span>
+                <input type="email" name="" id="" class="form-control" placeholder="{{ user.email }}">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col input-group">
+                <span class="input-group-text" style="min-width: 17%;">TOTP</span>
+                <button type="button" class="btn btn-outline-warning" style="width: 83%;" data-bs-toggle="modal"
+                    data-bs-target="#totp-active-modal">Disabled</button>
+            </div>
+        </div>
+        <form class="modal fade" id="totp-active-modal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5 text-center" style="width: 100%;">TOTP</h1>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col text-center">
+                                    <img id="qr-code" class="img-thumbnail mb-3" height="200px" width="200px">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <p class="text-center">Enter OTP</p>
+                            </div>
+                            <div class="row otp-inputs">
+                                <div class="col">
+                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
+                                        min="0" max="9" required>
+                                </div>
+                                <div class="col">
+                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
+                                        min="0" max="9" required>
+                                </div>
+                                <div class="col">
+                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
+                                        min="0" max="9" required>
+                                </div>
+                                <div class="col">
+                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
+                                        min="0" max="9" required>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <div class="container">
+                            <div class="row justify-content-around">
+                                <button type="button" class="col-5 btn btn-outline-danger"
+                                    data-bs-dismiss="modal">Discard</button>
+                                <button type="submit" class="col-5 btn btn-outline-primary">Activate</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block nav_action %}
+<a class="nav-link text-light" href="/auth/logout"><i class="bi bi-box-arrow-left"></i></a>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const inputs = document.querySelectorAll(".otp-inputs .otp")
+    inputs.forEach((input, index) => {
+        input.addEventListener("input", () => {
+            input.value = input.value.replace(/[^0-9]/g, "")
+
+            if (input.value.length === 1 && index < inputs.length - 1) {
+                inputs[index + 1].focus()
+            }
+        })
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace" && !input.value && index > 0) {
+                inputs[index - 1].focus()
+            }
+        })
+    })
+
+    document.getElementById("totp-active-modal").addEventListener("shown.bs.modal", async () => {
+        const response = await fetch("/auth/totp-active", {
+            method: "POST"
+        })
+        if (response.status === 200) {
+            const data = await response.json()
+
+            document.getElementById("qr-code").src = data.qr
+        }
+
+        inputs[0].focus()
+    })
+
+    document.getElementById("totp-active-modal").addEventListener("hidden.bs.modal", () => {
+        inputs.forEach((input, index) => {
+            input.value = ""
+        })
+    })
+
+    document.getElementById("totp-active-modal").addEventListener("submit", (e) => {
+        e.preventDefault()
+
+        let otp = ""
+        inputs.forEach(input => otp += input.value)
+    })
+</script>
+{% endblock %}

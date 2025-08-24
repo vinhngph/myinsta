@@ -1,7 +1,10 @@
 from flask import request, redirect, make_response, jsonify, render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from email_validator import validate_email, EmailNotValidError
-
+from pyotp import TOTP, random_base32
+from qrcode import make as qr_make
+from io import BytesIO
+from base64 import b64encode
 
 from app.extensions import db
 from app.utils.jwt import jwt_new_token
@@ -15,7 +18,7 @@ class UserServices:
             return redirect("/login")
 
         rows = db.execute(
-            "SELECT u.id, u.username, u.email, u.password,ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.username=?",
+            "SELECT u.id, u.username, u.email, u.password, u.totp, ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.username=?",
             (username,),
         )
 
@@ -27,18 +30,24 @@ class UserServices:
         user = rows[0]
         del user["password"]
 
-        token = jwt_new_token(user)
+        if user["totp"]:
+            user["totp"] = "true"
+            token = jwt_new_token(user)
+            return jsonify({"message": "TOTP required"}), 423
+        else:
+            user["totp"] = "false"
+            token = jwt_new_token(user)
 
-        response = make_response(redirect("/"))
-        response.set_cookie(
-            "auth_token",
-            token,
-            httponly=True,
-            secure=True,
-            samesite="Strict",
-            max_age=3600,
-        )
-        return response
+            response = make_response()
+            response.set_cookie(
+                "auth_token",
+                token,
+                httponly=True,
+                secure=True,
+                samesite="Strict",
+                max_age=3600,
+            )
+            return response, 200
 
     @staticmethod
     def register(email, username, password, confirm, name):
@@ -145,6 +154,36 @@ class UserServices:
                 return jsonify({"message": "Acceptable"}), 200
         except:
             return jsonify({"message": "Unacceptable"}), 400
+
+    @staticmethod
+    def enable_totp(user):
+        if not user:
+            return jsonify({"message": "Unacceptable"}), 400
+
+        totp = TOTP(random_base32())
+        try:
+            db.execute(
+                "UPDATE users SET totp=? WHERE id=?",
+                (
+                    totp.secret,
+                    user["id"],
+                ),
+            )
+        except:
+            return jsonify({"message": "Unacceptable"}), 400
+
+        uri = totp.provisioning_uri(name=user["username"], issuer_name="myinsta")
+
+        qr_image = qr_make(uri)
+
+        buf = BytesIO()
+        qr_image.save(buf, format="PNG")
+
+        qr_base64 = b64encode(buf.getvalue()).decode()
+
+        return jsonify(
+            {"secret": totp.secret, "qr": "data:image/png;base64," + qr_base64}
+        )
 
     @staticmethod
     def follow(user, data):

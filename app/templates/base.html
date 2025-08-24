@@ -14,7 +14,7 @@
     {% block extra_css %} {% endblock %}
 </head>
 
-<body class="text-light">
+<body class="text-light" data-bs-theme="dark">
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column align-items-center d-none d-md-flex">
         <a class="myinsta-logo" href="/">myinsta</a>
@@ -33,6 +33,7 @@
             <div id="searchResults" class="search-results"></div>
         </div>
         <div class="mt-auto w-100">
+            <a href="/account" class="btn btn-outline-info w-100 mb-3"><i class="bi bi-person-square"></i></a>
             <a href="/auth/logout" class="btn btn-outline-secondary w-100"><i class="bi bi-box-arrow-left"></i></a>
             <footer>
                 <small>&copy; 2025 Nguyen Phuc Vinh. All rights reserved.</small>
