@@ -37,3 +37,10 @@ def logout():
 @login_required
 def totp_active(user):
     return UserServices.enable_totp(user)
+
+
+@auth_bp.route("/verify-totp", methods=["POST"])
+def verify_totp():
+    username = request.form.get("username")
+    token = request.form.get("token")
+    return UserServices.verify_totp(username, token)

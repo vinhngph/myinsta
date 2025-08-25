@@ -186,6 +186,39 @@ class UserServices:
         )
 
     @staticmethod
+    def verify_totp(username, token):
+        if not username or not token:
+            return jsonify({"message": "missing parameters."}), 400
+        
+        try:
+            rows = db.execute(
+                "SELECT u.id, u.username, u.email, u.totp, ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.username=?",
+                (username,),
+            )
+        except:
+            return jsonify({"message": "user not found"}), 400
+
+        user = rows[0]
+
+        totp = TOTP(user["totp"])
+        if not totp.verify(token):
+            return jsonify({"message": "Wrong otp"}), 401
+
+        user["totp"] = "true"
+        token = jwt_new_token(user)
+
+        response = make_response()
+        response.set_cookie(
+            "auth_token",
+            token,
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+            max_age=3600,
+        )
+        return response, 202
+
+    @staticmethod
     def follow(user, data):
         if not data:
             return jsonify({"message": "Missing data."}), 400
