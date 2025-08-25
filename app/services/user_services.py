@@ -189,7 +189,7 @@ class UserServices:
     def verify_totp(username, token):
         if not username or not token:
             return jsonify({"message": "missing parameters."}), 400
-        
+
         try:
             rows = db.execute(
                 "SELECT u.id, u.username, u.email, u.totp, ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.username=?",
