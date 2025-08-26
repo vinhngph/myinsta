@@ -5,9 +5,9 @@
 .gitignore
 __pycache__
 
-contents
+# contents
 
-*.db
+# *.db
 project.txt
 
 # contents

@@ -42,8 +42,8 @@ document.addEventListener("DOMContentLoaded", function () {
     passwordInput.addEventListener("input", validatePasswordMatch);
     confirmInput.addEventListener("input", validatePasswordMatch);
 
-    // Next step
-    nextStepBtn.addEventListener("click", function () {
+    step1.addEventListener("submit", (e) => {
+        e.preventDefault()
         if (
             emailInput.value.trim() !== "" &&
             passwordInput.value !== "" &&
@@ -54,9 +54,9 @@ document.addEventListener("DOMContentLoaded", function () {
             step1.classList.remove("active");
             step2.classList.add("active");
         } else {
-            alert("Please fix errors in Step 1 before proceeding.");
+            step1.appendChild(errorAlert("Please fill all fields."))
         }
-    });
+    })
 
     // Back button
     prevStepBtn.addEventListener("click", function () {
@@ -80,4 +80,53 @@ document.addEventListener("DOMContentLoaded", function () {
             usernameInput.style.borderColor = "#dc3545";
         }
     });
+
+    step2.addEventListener("submit", async (e) => {
+        e.preventDefault()
+        if (
+            emailInput.value.trim() !== "" &&
+            passwordInput.value !== "" &&
+            confirmInput.value !== "" &&
+            passwordInput.value === confirmInput.value &&
+            emailInput.style.borderColor === "rgb(40, 167, 69)" &&
+            usernameInput.style.borderColor === "rgb(40, 167, 69)"
+        ) {
+            const data = new FormData()
+            data.append("email", emailInput.value)
+            data.append("password", passwordInput.value)
+            data.append("confirm", confirmInput.value)
+            data.append("username", usernameInput.value)
+            data.append("name", document.querySelector("#regName").value)
+
+            const response = await fetch("/auth/register", {
+                method: "POST",
+                body: data
+            })
+
+            if (response.status === 201) {
+                window.location.href = "/"
+            } else {
+                step2.appendChild(errorAlert("Invalid data in fields."))
+            }
+        } else {
+            step2.appendChild(errorAlert("Please fill all fields."))
+        }
+    })
+
+    function errorAlert(message) {
+        const errorDiv = document.createElement("div")
+        errorDiv.className = "alert alert-danger text-center"
+        errorDiv.role = "alert"
+        errorDiv.textContent = message
+
+        function triggerOutside(e) {
+            if (!errorDiv.contains(e.target)) {
+                errorDiv.remove()
+                document.removeEventListener("click", triggerOutside)
+            }
+        }
+        document.addEventListener("click", triggerOutside)
+
+        return errorDiv
+    }
 });

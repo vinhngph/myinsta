@@ -7,3 +7,4 @@ eventlet
 pyotp
 qrcode
 pillow
+gunicorn

@@ -116,7 +116,7 @@ class UserServices:
             return redirect("/login")
 
         token = jwt_new_token(user[0])
-        response = make_response(redirect("/"))
+        response = make_response()
         response.set_cookie(
             "auth_token",
             token,
@@ -126,7 +126,7 @@ class UserServices:
             max_age=3600,
         )
 
-        return response
+        return response, 201
 
     @staticmethod
     def logout():
