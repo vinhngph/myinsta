@@ -13,7 +13,7 @@ from app.utils.uuid import generate_unique_comment_id
 
 class UserServices:
     @staticmethod
-    def login(username, password):
+    def login(username, password, token):
         if not (username or password):
             return redirect("/login")
 
@@ -31,9 +31,26 @@ class UserServices:
         del user["password"]
 
         if user["totp"]:
-            user["totp"] = "true"
-            token = jwt_new_token(user)
-            return jsonify({"message": "TOTP required"}), 423
+            if token:
+                totp = TOTP(user["totp"])
+                if not totp.verify(token):
+                    return jsonify({"message": "Wrong otp"}), 401
+
+                user["totp"] = "true"
+                token = jwt_new_token(user)
+
+                response = make_response()
+                response.set_cookie(
+                    "auth_token",
+                    token,
+                    httponly=True,
+                    secure=True,
+                    samesite="Strict",
+                    max_age=3600,
+                )
+                return response, 202
+            else:
+                return jsonify({"message": "TOTP required"}), 423
         else:
             user["totp"] = "false"
             token = jwt_new_token(user)
@@ -47,7 +64,7 @@ class UserServices:
                 samesite="Strict",
                 max_age=3600,
             )
-            return response, 200
+            return response, 202
 
     @staticmethod
     def register(email, username, password, confirm, name):
@@ -186,21 +203,21 @@ class UserServices:
         )
 
     @staticmethod
-    def verify_totp(username, token):
-        if not username or not token:
+    def verify_totp(user, token):
+        if not token:
             return jsonify({"message": "missing parameters."}), 400
 
         try:
             rows = db.execute(
-                "SELECT u.id, u.username, u.email, u.totp, ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.username=?",
-                (username,),
+                "SELECT totp FROM users WHERE id=?",
+                (user["id"],),
             )
         except:
             return jsonify({"message": "user not found"}), 400
 
-        user = rows[0]
+        user_totp = rows[0]
 
-        totp = TOTP(user["totp"])
+        totp = TOTP(user_totp["totp"])
         if not totp.verify(token):
             return jsonify({"message": "Wrong otp"}), 401
 

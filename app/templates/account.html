@@ -138,6 +138,15 @@
 
         input.addEventListener("keydown", (e) => {
             if (e.key === "Backspace" && !input.value && index > 0) {
+                const otpSpinner = document.querySelector("#otp-spinner")
+                if (otpSpinner) {
+                    otpSpinner.remove()
+                }
+                const otpError = document.querySelector("#otp-error")
+                if (otpError) {
+                    otpError.remove()
+                }
+
                 inputs[index - 1].focus()
             }
         })

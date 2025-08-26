@@ -9,7 +9,8 @@ auth_bp = Blueprint("auth_bp", __name__)
 def login():
     username = request.form.get("username")
     password = request.form.get("password")
-    return UserServices.login(username=username, password=password)
+    token = request.form.get("token")
+    return UserServices.login(username=username, password=password, token=token)
 
 
 @auth_bp.route("/register", methods=["POST"])
@@ -40,7 +41,7 @@ def totp_active(user):
 
 
 @auth_bp.route("/verify-totp", methods=["POST"])
-def verify_totp():
-    username = request.form.get("username")
+@login_required
+def verify_totp(user):
     token = request.form.get("token")
-    return UserServices.verify_totp(username, token)
+    return UserServices.verify_totp(user, token)

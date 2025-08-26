@@ -137,9 +137,10 @@
 
                     const data = new FormData()
                     data.append("username", document.getElementById("username").value)
+                    data.append("password", document.getElementById("password").value)
                     data.append("token", otp)
 
-                    const response = await fetch("/auth/verify-totp", {
+                    const response = await fetch("/auth/login", {
                         method: "POST",
                         body: data
                     })
@@ -166,6 +167,15 @@
 
             input.addEventListener("keydown", (e) => {
                 if (e.key === "Backspace" && !input.value && index > 0) {
+                    const otpSpinner = document.querySelector("#otp-spinner")
+                    if (otpSpinner) {
+                        otpSpinner.remove()
+                    }
+                    const otpError = document.querySelector("#otp-error")
+                    if (otpError) {
+                        otpError.remove()
+                    }
+
                     inputs[index - 1].focus()
                 }
             })
@@ -182,7 +192,7 @@
                 document.getElementById("login-form").classList.remove("active")
                 document.getElementById("otp-form").classList.add("active")
                 inputs[0].focus()
-            } else if (response.status === 200) {
+            } else if (response.status === 202) {
                 window.location.href = "/"
             }
         })
