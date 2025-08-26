@@ -4,3 +4,7 @@ pyjwt
 email-validator
 flask-socketio
 eventlet
+pyotp
+qrcode
+pillow
+gunicorn

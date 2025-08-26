@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="../static/css/account.css">
+{% endblock %}
+
+{% block main %}
+<div class="content-wrapper" id="content">
+    <div class="container">
+        <div class="row mb-3">
+            <div class="col">
+                <h1 class="text-center">Account</h1>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col input-group">
+                <span class="input-group-text" style="min-width: 17%;">Name</span>
+                <input type="text" name="" id="" class="form-control" placeholder="{{ user.name }}">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col input-group">
+                <span class="input-group-text" style="min-width: 17%;">Username</span>
+                <input type="text" name="" id="username" class="form-control" placeholder="{{ user.username }}"
+                    value="{{ user.username }}">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col input-group">
+                <span class="input-group-text" style="min-width: 17%;">Email</span>
+                <input type="email" name="" id="" class="form-control" placeholder="{{ user.email }}">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col input-group">
+                <span class="input-group-text" style="min-width: 17%;">MFA</span>
+
+                {% if user.totp == "true" %}
+                <button type="button" class="btn btn-outline-success" style="width: 83%;" data-bs-toggle="modal"
+                    data-bs-target="#totp-deactivate-modal">Activated</button>
+                {% else %}
+                <button type="button" class="btn btn-outline-warning" style="width: 83%;" data-bs-toggle="modal"
+                    data-bs-target="#totp-active-modal">Disabled</button>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user.totp == "true" %}
+        <form class="modal fade" id="totp-deactivate-modal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5 text-center" style="width: 100%;">Disable MFA</h1>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container" id="totp-active-container">
+                            <div class="row">
+                                <div class="col text-center fs-5">
+                                    <p>Your account could be attacked.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="container">
+                            <div class="row justify-content-around">
+                                <button type="button" class="col-5 btn btn-outline-primary"
+                                    data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="col-5 btn btn-outline-danger">Disable</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        {% else %}
+        <form class="modal fade" id="totp-active-modal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5 text-center" style="width: 100%;">TOTP</h1>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container" id="totp-active-container">
+                            <div class="row">
+                                <div class="col text-center">
+                                    <img id="qr-code" class="img-thumbnail mb-3" height="200px" width="200px">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <p class="text-center w-100">Or copy this code</p>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="input-group">
+                                    <input type="text" id="copy-totp" class="form-control text-center" disabled>
+                                    <button type="button" id="copy-totp-btn" class="btn btn-outline-secondary"><i
+                                            class="bi bi-copy"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <p class="text-center w-100">Enter OTP</p>
+                            </div>
+
+                            <div class="row otp-inputs mb-3 g-2">
+                                <div class="col">
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
+                                </div>
+                                <div class="col">
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
+                                </div>
+                                <div class="col">
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
+                                </div>
+                                <div class="col">
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
+                                </div>
+                                <div class="col">
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
+                                </div>
+                                <div class="col">
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <div class="container">
+                            <div class="row justify-content-around">
+                                <button type="button" class="col-5 btn btn-outline-danger"
+                                    data-bs-dismiss="modal">Discard</button>
+                                <button type="submit" class="col-5 btn btn-outline-primary">Activate</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block nav_action %}
+<a class="nav-link text-light" href="/auth/logout"><i class="bi bi-box-arrow-left"></i></a>
+{% endblock %}
+
+{% block extra_js %}
+
+{% if user.totp == "true" %}
+<script>
+    document.getElementById("totp-deactivate-modal").addEventListener("submit", async (e) => {
+        e.preventDefault()
+
+        const response = await fetch("/auth/totp-deactivate", {
+            method: "DELETE"
+        })
+
+        if (response.status === 200) {
+            window.location.reload()
+        } else {
+            const data = await response.json()
+            console.error(data)
+        }
+    })
+</script>
+{% else %}
+<script>
+    const inputs = document.querySelectorAll(".otp-inputs .otp")
+    inputs.forEach((input, index) => {
+        input.addEventListener("input", async () => {
+            input.value = input.value.replace(/[^0-9]/g, "")
+
+            if (input.value.length === 1 && index < inputs.length - 1) {
+                const otpSpinner = document.querySelector("#otp-spinner")
+                if (otpSpinner) {
+                    otpSpinner.remove()
+                }
+                const otpError = document.querySelector("#otp-error")
+                if (otpError) {
+                    otpError.remove()
+                }
+
+                inputs[index + 1].focus()
+            } else if (index === (inputs.length - 1) && input.value !== "") {
+                let otp = ""
+                inputs.forEach(input => otp += input.value)
+
+                verifyOTP(otp)
+            }
+        })
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace" && !input.value && index > 0) {
+                const otpSpinner = document.querySelector("#otp-spinner")
+                if (otpSpinner) {
+                    otpSpinner.remove()
+                }
+                const otpError = document.querySelector("#otp-error")
+                if (otpError) {
+                    otpError.remove()
+                }
+
+                inputs[index - 1].focus()
+            }
+        })
+    })
+
+    async function verifyOTP(otp) {
+        const otpError = document.getElementById("otp-error")
+        if (otpError) {
+            otpError.remove()
+        }
+
+        const spinnerRow = document.createElement("div")
+        spinnerRow.className = "row justify-content-center"
+        spinnerRow.id = "otp-spinner"
+
+        const spinner = document.createElement("div")
+        spinner.className = "spinner-border"
+        spinner.role = "status"
+
+        const spinnerSpan = document.createElement("span")
+        spinnerSpan.className = "visually-hidden"
+        spinnerSpan.textContent = "Loading..."
+
+        spinner.appendChild(spinnerSpan)
+        spinnerRow.appendChild(spinner)
+
+        document.getElementById("totp-active-container").appendChild(spinnerRow)
+
+        const data = new FormData()
+        data.append("username", document.getElementById("username").value)
+        data.append("token", otp)
+
+        const response = await fetch("/auth/verify-totp", {
+            method: "POST",
+            body: data
+        })
+
+        if (response.status === 202) {
+            window.location.reload()
+        } else if (response.status === 401) {
+            if (document.getElementById("otp-spinner")) {
+                spinnerRow.remove()
+            }
+
+            if (!document.getElementById("otp-error")) {
+                const errorRow = document.createElement("div")
+                errorRow.id = "otp-error"
+                errorRow.className = "row"
+
+                const errorP = document.createElement("div")
+                errorP.className = "alert alert-danger text-center"
+                errorP.role = "alert"
+                errorP.textContent = "Wrong OTP. Please try again."
+                errorRow.appendChild(errorP)
+
+                document.getElementById("totp-active-container").appendChild(errorRow)
+            }
+        }
+    }
+
+    document.getElementById("totp-active-modal").addEventListener("shown.bs.modal", async () => {
+        const response = await fetch("/auth/totp-active", {
+            method: "POST"
+        })
+        if (response.status === 200) {
+            const data = await response.json()
+
+            document.getElementById("qr-code").src = data.qr
+            document.getElementById("copy-totp").value = data.secret
+        }
+
+        inputs[0].focus()
+    })
+
+    document.getElementById("totp-active-modal").addEventListener("hidden.bs.modal", async () => {
+        inputs.forEach((input, index) => {
+            input.value = ""
+        })
+
+        const response = await fetch("/auth/totp-discard", {
+            method: "DELETE"
+        })
+
+        if (response.status !== 200) {
+            const data = await response.json()
+            console.error(data)
+        }
+    })
+
+    document.getElementById("totp-active-modal").addEventListener("submit", async (e) => {
+        e.preventDefault()
+        let otp = ""
+        inputs.forEach(input => otp += input.value)
+
+        verifyOTP(otp)
+    })
+
+    document.getElementById("copy-totp-btn").addEventListener("click", async () => {
+        const totp = document.getElementById("copy-totp").value
+        await navigator.clipboard.writeText(totp)
+
+        const copyBtnIcon = document.querySelector("#copy-totp-btn i")
+        copyBtnIcon.className = "bi bi-clipboard-check-fill"
+
+        setTimeout(() => {
+            copyBtnIcon.className = "bi bi-copy"
+        }, 1000);
+    })
+</script>
+{% endif %}
+
+{% endblock %}

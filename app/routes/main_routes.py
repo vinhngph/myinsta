@@ -25,6 +25,12 @@ def register():
     return make_response(render_template("register.html"))
 
 
+@main_bp.route("/account")
+@login_required
+def account(user):
+    return make_response(render_template("account.html", user=user))
+
+
 @main_bp.route("/<path:path>")
 @login_required
 def profile(user, path):

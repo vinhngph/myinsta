@@ -6,7 +6,7 @@ body {
 }
 
 .login-container {
-    max-width: 400px;
+    max-width: 500px;
     margin: 0 auto;
     padding-top: 10%;
 }
@@ -20,7 +20,8 @@ body {
 }
 
 .login-logo {
-    font-size: 2rem;
+    font-family: "Cookie", cursive;
+    font-size: 4rem;
     font-weight: bold;
     color: #4db5ff;
     text-align: center;
@@ -95,4 +96,12 @@ body {
     color: #aaa;
     text-align: center;
     margin-top: 1rem;
+}
+
+.step.active {
+    display: block;
+}
+
+.step {
+    display: none;
 }
