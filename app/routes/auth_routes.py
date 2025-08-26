@@ -40,6 +40,18 @@ def totp_active(user):
     return UserServices.enable_totp(user)
 
 
+@auth_bp.route("/totp-discard", methods=["DELETE"])
+@login_required
+def totp_discard(user):
+    return UserServices.discard_totp(user)
+
+
+@auth_bp.route("/totp-deactivate", methods=["DELETE"])
+@login_required
+def totp_deactivate(user):
+    return UserServices.totp_deactivate(user)
+
+
 @auth_bp.route("/verify-totp", methods=["POST"])
 @login_required
 def verify_totp(user):

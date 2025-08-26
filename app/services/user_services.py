@@ -203,21 +203,66 @@ class UserServices:
         )
 
     @staticmethod
+    def discard_totp(user):
+        if not user:
+            return jsonify({"message": "Unacceptable"}), 400
+
+        try:
+            db.execute('UPDATE users SET totp="" WHERE id=?', (user["id"],))
+        except:
+            return jsonify({"message": "Unacceptable"}), 400
+
+        return jsonify({"message": "disabled."}), 200
+
+    @staticmethod
+    def totp_deactivate(user):
+        if not user:
+            return jsonify({"message": "Unacceptable"}), 400
+
+        try:
+            db.execute('UPDATE users SET totp="" WHERE id=?', (user["id"],))
+        except:
+            return jsonify({"message": "Unacceptable"}), 400
+
+        try:
+            rows = db.execute(
+                "SELECT u.id, u.username, u.email, u.totp, ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.id=?",
+                (user["id"],),
+            )
+        except:
+            return jsonify({"message": "user not found"}), 400
+
+        user = rows[0]
+        user["totp"] = "false"
+        token = jwt_new_token(user)
+
+        response = make_response()
+        response.set_cookie(
+            "auth_token",
+            token,
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+            max_age=3600,
+        )
+        return response, 200
+
+    @staticmethod
     def verify_totp(user, token):
         if not token:
             return jsonify({"message": "missing parameters."}), 400
 
         try:
             rows = db.execute(
-                "SELECT totp FROM users WHERE id=?",
+                "SELECT u.id, u.username, u.email, u.totp, ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.id=?",
                 (user["id"],),
             )
         except:
             return jsonify({"message": "user not found"}), 400
 
-        user_totp = rows[0]
+        user = rows[0]
 
-        totp = TOTP(user_totp["totp"])
+        totp = TOTP(user["totp"])
         if not totp.verify(token):
             return jsonify({"message": "Wrong otp"}), 401
 
