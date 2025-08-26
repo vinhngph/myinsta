@@ -96,3 +96,11 @@ body {
     text-align: center;
     margin-top: 1rem;
 }
+
+.step.active {
+    display: block;
+}
+
+.step {
+    display: none;
+}

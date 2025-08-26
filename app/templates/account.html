@@ -87,33 +87,47 @@
                                     <img id="qr-code" class="img-thumbnail mb-3" height="200px" width="200px">
                                 </div>
                             </div>
+
                             <div class="row">
-                                <p class="text-center">Enter OTP</p>
+                                <p class="text-center w-100">Or copy this code</p>
                             </div>
-                            <div class="row otp-inputs mb-3">
+
+                            <div class="row mb-3">
+                                <div class="input-group">
+                                    <input type="text" id="copy-totp" class="form-control text-center" disabled>
+                                    <button type="button" id="copy-totp-btn" class="btn btn-outline-secondary"><i
+                                            class="bi bi-copy"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <p class="text-center w-100">Enter OTP</p>
+                            </div>
+
+                            <div class="row otp-inputs mb-3 g-2">
                                 <div class="col">
-                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
-                                        min="0" max="9" required>
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
-                                        min="0" max="9" required>
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
-                                        min="0" max="9" required>
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
-                                        min="0" max="9" required>
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
-                                        min="0" max="9" required>
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" maxlength="1" name="" id="" class="form-control text-center otp"
-                                        min="0" max="9" required>
+                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required>
                                 </div>
                             </div>
                         </div>
@@ -203,6 +217,11 @@
     })
 
     async function verifyOTP(otp) {
+        const otpError = document.getElementById("otp-error")
+        if (otpError) {
+            otpError.remove()
+        }
+
         const spinnerRow = document.createElement("div")
         spinnerRow.className = "row justify-content-center"
         spinnerRow.id = "otp-spinner"
@@ -232,19 +251,23 @@
         if (response.status === 202) {
             window.location.reload()
         } else if (response.status === 401) {
-            spinnerRow.remove()
+            if (document.getElementById("otp-spinner")) {
+                spinnerRow.remove()
+            }
 
-            const errorRow = document.createElement("div")
-            errorRow.id = "otp-error"
-            errorRow.className = "row"
+            if (!document.getElementById("otp-error")) {
+                const errorRow = document.createElement("div")
+                errorRow.id = "otp-error"
+                errorRow.className = "row"
 
-            const errorP = document.createElement("p")
-            errorP.className = "fs-5 text-center"
-            errorP.style.color = "red"
-            errorP.textContent = "Wrong OTP. Please try again."
-            errorRow.appendChild(errorP)
+                const errorP = document.createElement("div")
+                errorP.className = "alert alert-danger text-center"
+                errorP.role = "alert"
+                errorP.textContent = "Wrong OTP. Please try again."
+                errorRow.appendChild(errorP)
 
-            document.getElementById("totp-active-container").appendChild(errorRow)
+                document.getElementById("totp-active-container").appendChild(errorRow)
+            }
         }
     }
 
@@ -256,6 +279,7 @@
             const data = await response.json()
 
             document.getElementById("qr-code").src = data.qr
+            document.getElementById("copy-totp").value = data.secret
         }
 
         inputs[0].focus()
@@ -282,6 +306,18 @@
         inputs.forEach(input => otp += input.value)
 
         verifyOTP(otp)
+    })
+
+    document.getElementById("copy-totp-btn").addEventListener("click", async () => {
+        const totp = document.getElementById("copy-totp").value
+        await navigator.clipboard.writeText(totp)
+
+        const copyBtnIcon = document.querySelector("#copy-totp-btn i")
+        copyBtnIcon.className = "bi bi-clipboard-check-fill"
+
+        setTimeout(() => {
+            copyBtnIcon.className = "bi bi-copy"
+        }, 1000);
     })
 </script>
 {% endif %}
