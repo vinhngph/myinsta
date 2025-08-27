@@ -20,7 +20,7 @@
 
 <body class="text-light" data-bs-theme="dark">
     <!-- Sidebar -->
-    <div class="sidebar d-flex flex-column align-items-center d-none d-md-flex">
+    <div class="sidebar d-flex flex-column align-items-center d-none d-xl-flex">
         <a class="myinsta-logo" href="/">myinsta</a>
         <a class="user-profile-link" href="/{{ user.username }}">@{{ user.username }}</a>
 
@@ -37,8 +37,7 @@
             <div id="searchResults" class="search-results"></div>
         </div>
         <div class="mt-auto w-100">
-            <a href="/account" class="btn btn-outline-info w-100 mb-3"><i class="bi bi-person-square"></i></a>
-            <a href="/auth/logout" class="btn btn-outline-secondary w-100"><i class="bi bi-box-arrow-left"></i></a>
+            <a href="/account" class="btn btn-outline-info w-100 mb-3"><i class="bi bi-sliders"></i></a>
             <footer>
                 <small>&copy; 2025 Nguyen Phuc Vinh. All rights reserved.</small>
             </footer>
@@ -46,7 +45,7 @@
     </div>
 
     <!-- Bottom Navbar for mobile -->
-    <nav class="navbar fixed-bottom navbar-dark bg-dark d-md-none">
+    <nav class="navbar fixed-bottom navbar-dark bg-dark d-xl-none">
         <div class="container-fluid justify-content-around">
             <a class="nav-link text-light" href="/"><i class="bi bi-house-door"></i></a>
             <button type="button" data-bs-toggle="modal" data-bs-target="#searchModal" class="nav-link text-light"

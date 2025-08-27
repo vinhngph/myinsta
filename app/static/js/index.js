@@ -5,6 +5,25 @@ let offset = 0;
 const limit = 5;
 let isLoading = false;
 
+const videoObserverOptions = {
+    root: null,
+    rootMargin: "0px",
+    threshold: 0.5
+}
+
+const videoAutoplayCallback = (entries, observer) => {
+    entries.forEach(entry => {
+        const video = entry.target;
+        if (entry.isIntersecting) {
+            video.play()
+        } else {
+            video.pause()
+        }
+    })
+}
+
+const videoObserver = new IntersectionObserver(videoAutoplayCallback, videoObserverOptions);
+
 async function fetchAttachment(url) {
     const response = await fetch(url);
     const contentType = response.headers.get("Content-Type");
@@ -19,6 +38,9 @@ async function fetchAttachment(url) {
         const video = document.createElement("video");
         video.src = url;
         video.controls = true;
+        video.playsInline = true;
+        video.loop = true;
+        video.muted = true;
         video.className = "img-fluid rounded";
         return video;
     } else {
@@ -61,6 +83,10 @@ async function loadPosts() {
                         openPostModal(value);
                     });
                     ratioDiv.appendChild(attachment);
+
+                    if (attachment.tagName === "VIDEO") {
+                        videoObserver.observe(attachment)
+                    }
                 } catch (error) {
                     console.error("Error loading attachment:", error);
                 }
