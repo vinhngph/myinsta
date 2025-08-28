@@ -3,7 +3,9 @@ import os
 
 from app.extensions import db
 from app.utils.uuid import generate_unique_post_id
+from app.utils.ffmpeg import run_ffmpeg
 from config import Config
+import threading
 
 
 class PostServices:
@@ -24,20 +26,46 @@ class PostServices:
             return jsonify({"message": "Missing descripton."}), 400
 
         post_id = generate_unique_post_id(db=db)
-        file_ext = os.path.splitext(file.filename)[1]
-        filename = f"{post_id}{file_ext}"
 
-        file_path = os.path.join("app", Config.CONTENT_FOLDER, filename)
+        if file.mimetype.startswith("video/"):
+            filename = f"RAW_{post_id}"
 
-        try:
-            db.execute(
-                "INSERT INTO posts (id, user_id, description, attachment) VALUES (?, ?, ?, ?)",
-                (post_id, user["id"], description, file.filename),
-            )
-            file.save(file_path)
-            return jsonify({"message": "Success."}), 201
-        except Exception as e:
-            return jsonify({"message": "Server error."}), 500
+            raw_path = os.path.join("app", Config.CONTENT_FOLDER, filename)
+
+            try:
+                db.execute(
+                    "INSERT INTO posts (id, user_id, description, attachment) VALUES (?, ?, ?, ?)",
+                    (post_id, user["id"], description, file.filename),
+                )
+                file.save(raw_path)
+                output_path = os.path.join(
+                    "app", Config.CONTENT_FOLDER, f"{post_id}.mp4"
+                )
+
+                threading.Thread(
+                    target=run_ffmpeg,
+                    args=(post_id, raw_path, output_path),
+                    daemon=True,
+                ).start()
+
+                return jsonify({"task_id": post_id}), 201
+            except Exception as e:
+                return jsonify({"message": "Server error."}), 500
+        else:
+            file_ext = os.path.splitext(file.filename)[1]
+            filename = f"{post_id}{file_ext}"
+
+            file_path = os.path.join("app", Config.CONTENT_FOLDER, filename)
+
+            try:
+                db.execute(
+                    "INSERT INTO posts (id, user_id, description, attachment) VALUES (?, ?, ?, ?)",
+                    (post_id, user["id"], description, file.filename),
+                )
+                file.save(file_path)
+                return jsonify({"message": "Success."}), 201
+            except Exception as e:
+                return jsonify({"message": "Server error."}), 500
 
     @staticmethod
     def get_home_posts(user, limit, offset):
