@@ -1,6 +1,5 @@
 # myinsta
 ### Live production: https://myinsta.nguyenphucvinh.io.vn/
-#### Video Demo:  https://youtu.be/JjuiS_C2iOg
 #### Description: Below sections
 
 ## Project Overview
