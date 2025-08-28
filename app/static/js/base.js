@@ -15,26 +15,49 @@ document.getElementById("dropZone").addEventListener("click", () => {
 });
 
 // Show modal Create Post
-btnCreate.addEventListener("click", () => {
+function resetPostModal() {
     createForm.reset();
     step1.classList.remove("d-none");
     step2.classList.add("d-none");
+    step2.querySelector("img")?.remove()
+    step2.querySelector("video")?.remove()
     createError.classList.add("d-none");
     createModal.show();
-});
-
-btnCreateMobile.addEventListener("click", () => {
-    createForm.reset();
-    step1.classList.remove("d-none");
-    step2.classList.add("d-none");
-    createError.classList.add("d-none");
-    createModal.show();
-});
+}
+btnCreate.addEventListener("click", resetPostModal);
+btnCreateMobile.addEventListener("click", resetPostModal);
 
 // File chose => Step 2
-document.getElementById("file").addEventListener("change", () => {
+document.getElementById("file").addEventListener("change", (e) => {
     step1.classList.add("d-none");
     step2.classList.remove("d-none");
+
+    const file = e.target.files[0]
+    if (file) {
+        const preview = document.querySelector(".preview")
+        if (file.type.startsWith("image/")) {
+            let img = preview.querySelector("img")
+            if (img) {
+                img.src = URL.createObjectURL(file)
+            } else {
+                img = document.createElement("img")
+                img.className = "img-fluid w-100 h-100 object-fit-cover "
+                img.src = URL.createObjectURL(file)
+                preview.appendChild(img)
+            }
+        } else if (file.type.startsWith("video/")) {
+            let video = preview.querySelector("video")
+            if (video) {
+                video.src = URL.createObjectURL(file)
+            } else {
+                video = document.createElement("video")
+                video.controls = true
+                video.className = ""
+                video.src = URL.createObjectURL(file)
+                preview.appendChild(video)
+            }
+        }
+    }
 });
 
 // Auto-resize textarea
@@ -142,10 +165,7 @@ createForm.addEventListener("submit", async (e) => {
     const formData = new FormData(createForm);
     const fileType = createForm.querySelector("#file").files[0].type
 
-    createForm.reset();
-    step1.classList.remove("d-none");
-    step2.classList.add("d-none");
-    createError.classList.add("d-none");
+    resetPostModal()
 
     const timestamp = new Date().toLocaleString()
     const uploadBar = createProgressBar("", timestamp + " | Uploading")
