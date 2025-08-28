@@ -7,6 +7,8 @@ const step2 = document.getElementById("step2");
 const createForm = document.getElementById("create-form");
 const createError = document.getElementById("createError");
 
+let uploadProcesses = {}
+
 // Click drop zone => Open file chooser
 document.getElementById("dropZone").addEventListener("click", () => {
     document.getElementById("file").click();
@@ -42,27 +44,140 @@ textarea.addEventListener("input", function () {
     this.style.height = this.scrollHeight + "px";
 });
 
+const createProgressBar = (id, title) => {
+    const progressContainer = document.createElement("div")
+    progressContainer.className = "mt-3"
+
+    const progressTitle = document.createElement("p")
+    progressTitle.textContent = title
+
+    progressContainer.appendChild(progressTitle)
+
+    const progressElement = document.createElement("div")
+    progressElement.className = `progress ${id}`
+    progressElement.role = "progressbar"
+    progressElement.ariaValueMin = "0"
+    progressElement.ariaValueMax = "100"
+
+    const progressPercentElement = document.createElement("div")
+    progressPercentElement.className = "progress-bar text-bg-info progress-bar-striped progress-bar-animated"
+    progressPercentElement.style.width = "0%"
+    progressPercentElement.textContent = "0%"
+
+    progressElement.appendChild(progressPercentElement)
+    progressContainer.appendChild(progressElement)
+
+    return {
+        id: id,
+        element: progressContainer,
+        setPercent: (percent) => {
+            const clamped = Math.round(Math.max(0, Math.min(100, percent)))
+            progressElement.ariaValueNow = clamped
+
+            progressPercentElement.style.width = clamped + "%"
+            progressPercentElement.textContent = clamped + "%"
+
+            if (clamped === 100) {
+                setTimeout(() => {
+                    progressContainer.remove()
+                }, 500);
+            }
+        }
+    }
+}
+
+const newToast = (title, body) => {
+    const toastClassname = "toast-container position-fixed top-0 end-0 p-3"
+    let toastContainer = document.querySelector("." + toastClassname.split(" ").join("."))
+    if (!toastContainer) {
+        toastContainer = document.createElement("div")
+        toastContainer.className = toastClassname
+        document.body.appendChild(toastContainer)
+    }
+
+    const liveToast = document.createElement("div")
+    liveToast.className = "toast"
+    liveToast.role = "alert"
+    liveToast.ariaLive = "assertLive"
+    liveToast.ariaAtomic = "true"
+
+    const toastHeader = document.createElement("div")
+    toastHeader.className = "toast-header"
+
+    const toastTitle = document.createElement("strong")
+    toastTitle.className = "me-auto fs-4 fw-bold"
+    toastTitle.textContent = title
+
+    const toastClose = document.createElement("button")
+    toastClose.type = "button"
+    toastClose.className = "btn-close"
+    toastClose.setAttribute("data-bs-dismiss", "toast")
+    toastClose.ariaLabel = "Close"
+
+    toastHeader.appendChild(toastTitle)
+    toastHeader.appendChild(toastClose)
+
+    const toastBody = document.createElement("div")
+    toastBody.className = "toast-body"
+
+    const bodyAlert = document.createElement("div")
+    bodyAlert.className = "alert alert-danger mb-0 fs-5"
+    bodyAlert.role = "alert"
+    bodyAlert.textContent = body
+    toastBody.appendChild(bodyAlert)
+
+    liveToast.appendChild(toastHeader)
+    liveToast.appendChild(toastBody)
+
+    toastContainer.appendChild(liveToast)
+
+    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(liveToast)
+    toastBootstrap.show()
+}
+
 // Submit form "create post"
 createForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const formData = new FormData(createForm);
-    const submitButton = createForm.querySelector("button[type='submit']");
-    submitButton.disabled = true;
-    try {
-        const response = await fetch("/api/post", {
-            method: "POST",
-            body: formData,
-        });
-        if (response.status === 201) {
-            createModal.hide();
-        } else {
-            createError.classList.remove("d-none");
+    const fileType = createForm.querySelector("#file").files[0].type
+
+    createForm.reset();
+    step1.classList.remove("d-none");
+    step2.classList.add("d-none");
+    createError.classList.add("d-none");
+
+    const timestamp = new Date().toLocaleString()
+    const uploadBar = createProgressBar("", timestamp + " | Uploading")
+
+    createForm.appendChild(uploadBar.element)
+
+    const xhr = new XMLHttpRequest()
+    xhr.open("POST", "/api/post")
+
+    xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+            uploadBar.setPercent((e.loaded / e.total) * 100)
         }
-    } catch (error) {
-        createError.classList.remove("d-none");
-    } finally {
-        submitButton.disabled = false;
+    })
+
+    xhr.onload = () => {
+        if (xhr.status === 201) {
+            const data = JSON.parse(xhr.responseText)
+
+            if (fileType.startsWith("video/")) {
+                const uploadBarProcess = createProgressBar(data.task_id, timestamp + " | Processing")
+                createForm.appendChild(uploadBarProcess.element)
+                uploadProcesses[data.task_id] = uploadBarProcess
+            }
+        }
     }
+
+    xhr.onerror = (e) => {
+        newToast("Error", e)
+    }
+
+    xhr.send(formData)
 });
 
 // -------------------------------
@@ -417,3 +532,8 @@ function updateActiveResultMobile(items) {
         }
     });
 }
+
+const socketBase = io()
+socketBase.on("progress", (data) => {
+    uploadProcesses[data.task_id]?.setPercent(data.progress)
+})
