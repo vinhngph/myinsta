@@ -8,3 +8,4 @@ pyotp
 qrcode
 pillow
 gunicorn
+regex

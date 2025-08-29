@@ -1,4 +1,4 @@
-from flask import request, redirect, make_response, jsonify, render_template
+from flask import redirect, make_response, jsonify, render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from email_validator import validate_email, EmailNotValidError
 from pyotp import TOTP, random_base32
@@ -9,18 +9,27 @@ from base64 import b64encode
 from app.extensions import db
 from app.utils.jwt import jwt_new_token
 from app.utils.uuid import generate_unique_comment_id
+import app.utils.validator as validator
 
 
 class UserServices:
     @staticmethod
-    def login(username, password, token):
-        if not (username or password):
+    def login(identifier, password, token):
+        if not (identifier or password):
             return redirect("/login")
 
-        rows = db.execute(
-            "SELECT u.id, u.username, u.email, u.password, u.totp, ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.username=?",
-            (username,),
-        )
+        if validator.is_email(identifier):
+            rows = db.execute(
+                "SELECT u.id, u.username, u.email, u.password, u.totp, ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.email=?",
+                (identifier,),
+            )
+        elif validator.is_username(identifier):
+            rows = db.execute(
+                "SELECT u.id, u.username, u.email, u.password, u.totp, ui.name, ui.birthday, ui.phone FROM users AS u LEFT JOIN user_informations AS ui ON u.id = ui.user_id WHERE u.username=?",
+                (identifier,),
+            )
+        else:
+            return redirect("/login")
 
         if len(rows) != 1 or not check_password_hash(
             rows[0]["password"], password=password
@@ -69,29 +78,20 @@ class UserServices:
     @staticmethod
     def register(email, username, password, confirm, name):
         # Handle email
-        try:
-            if (
-                not email
-                or not validate_email(email)
-                or db.execute("SELECT email FROM users WHERE email=?", (email,))
-            ):
-                return jsonify({"message": "Wrong email!"}), 400
-        except EmailNotValidError:
-            return jsonify({"message": "Wrong email"}), 400
+        if not validator.email(email):
+            return jsonify({"message": "invalid email."}), 400
         # ------------------------------------------------------------------------
         # Handle username
-        if not username or db.execute(
-            "SELECT username FROM users WHERE username=?", (username,)
-        ):
-            return jsonify({"message": "missing input or username existed!"}), 400
+        if not validator.username(username):
+            return jsonify({"message": "invalid username."}), 400
         # ------------------------------------------------------------------------
         # Handle password
         if not password or not confirm or password != confirm:
-            return jsonify({"message": "missing input or password not match!"}), 400
+            return jsonify({"message": "invalid password"}), 400
         # ------------------------------------------------------------------------
         # Handle user's informations
-        if not name:
-            return jsonify({"message": "missing input name!"}), 400
+        if not validator.name(name):
+            return jsonify({"message": "invalid name"}), 400
         # ------------------------------------------------------------------------
         # Execute database
         try:
@@ -144,32 +144,30 @@ class UserServices:
 
     @staticmethod
     def valid_email(email):
-        # Check empty
-        if not email:
-            return jsonify({"message": "Unacceptable"}), 400
-        # Check exist
-        try:
-            if validate_email(email) and not db.execute(
-                "SELECT email FROM users WHERE email=?", (email,)
-            ):
-                return jsonify({"message": "Acceptable"}), 200
-            else:
-                return jsonify({"message": "Unacceptable"}), 400
-        except EmailNotValidError:
+        if validator.email(email):
+            return jsonify({"message": "Acceptable"}), 200
+        else:
             return jsonify({"message": "Unacceptable"}), 400
 
     @staticmethod
     def valid_username(username):
-        # Check empty
-        if not username:
+        if validator.username(username):
+            return jsonify({"message": "Acceptable"}), 200
+        else:
             return jsonify({"message": "Unacceptable"}), 400
-        # Check exist
-        try:
-            if db.execute("SELECT username FROM users WHERE username=?", (username,)):
-                return jsonify({"message": "Unacceptable"}), 400
-            else:
-                return jsonify({"message": "Acceptable"}), 200
-        except:
+
+    @staticmethod
+    def valid_name(name):
+        if validator.name(name):
+            return jsonify({"message": "Acceptable"}), 200
+        else:
+            return jsonify({"message": "Unacceptable"}), 400
+
+    @staticmethod
+    def valid_password(pwd):
+        if validator.password(pwd):
+            return jsonify({"message": "Acceptable"}), 200
+        else:
             return jsonify({"message": "Unacceptable"}), 400
 
     @staticmethod

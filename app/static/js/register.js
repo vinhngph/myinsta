@@ -1,3 +1,26 @@
+const borderValid = "rgb(40, 167, 69)"
+const borderInvalid = "rgb(220, 53, 69)"
+
+async function sendRequest(api, method, data) {
+    const response = await fetch(api, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+
+    return response
+}
+
+function debounce(func, delay = 500) {
+    let timeoutId
+    return function (...args) {
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => func.apply(this, args), delay)
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     // Elements Step 1 & 2
     const step1 = document.getElementById("step1");
@@ -5,98 +28,165 @@ document.addEventListener("DOMContentLoaded", function () {
     const nextStepBtn = document.getElementById("nextStep");
     const prevStepBtn = document.getElementById("prevStep");
 
-    // Validation Email using API
     const emailInput = document.getElementById("regEmail");
-    emailInput.addEventListener("blur", async function () {
-        const email = emailInput.value.trim();
-        if (email === "") return;
-        try {
-            const response = await fetch("/api/valid/email?v=" + encodeURIComponent(email));
-            if (response.ok) {
-                emailInput.style.borderColor = "#28a745"; // green
-            } else {
-                emailInput.style.borderColor = "#dc3545"; // red
-            }
-        } catch (error) {
-            emailInput.style.borderColor = "#dc3545";
-        }
-    });
-
-    // Validate password match for Password and Confirm
     const passwordInput = document.getElementById("regPassword");
     const confirmInput = document.getElementById("regConfirm");
-    function validatePasswordMatch() {
-        if (passwordInput.value && confirmInput.value) {
-            if (passwordInput.value === confirmInput.value) {
-                passwordInput.style.borderColor = "#28a745";
-                confirmInput.style.borderColor = "#28a745";
-            } else {
-                passwordInput.style.borderColor = "#dc3545";
-                confirmInput.style.borderColor = "#dc3545";
-            }
+    const usernameInput = document.getElementById("regUsername");
+    const nameInput = document.getElementById("regName");
+
+    // Validation Email
+    emailInput.addEventListener("input", debounce(async function (e) {
+        const input = e.target
+        if (input.value === "") return;
+
+        input.value = input.value.trim();
+        const email = input.value;
+
+        const response = await sendRequest("/api/valid/email", "POST", {
+            email: email
+        })
+
+        if (response.status === 200) {
+            input.style.borderColor = borderValid
+            errorAlert().remove()
         } else {
-            passwordInput.style.borderColor = "";
-            confirmInput.style.borderColor = "";
+            input.style.borderColor = borderInvalid
+            step1.appendChild(errorAlert("Invalid email").element)
+        }
+    }));
+
+    // Validate password match for Password and Confirm
+    async function validatePassword(e) {
+        const input = e.target
+        if (input.value === "") return
+
+
+        if (input === passwordInput) {
+            const response = await sendRequest("/api/valid/password", "POST", {
+                password: input.value
+            })
+            const isStrong = response.status === 200
+
+            if (isStrong) {
+                if (confirmInput.value !== "") {
+                    if (input.value === confirmInput.value) {
+                        input.style.borderColor = borderValid
+                        confirmInput.style.borderColor = borderValid
+                        errorAlert().remove()
+                    } else {
+                        input.style.borderColor = borderInvalid
+                        confirmInput.style.borderColor = borderInvalid
+                        step1.appendChild(errorAlert("Passwords were not match").element)
+                    }
+                } else {
+                    input.style.borderColor = borderValid
+                    errorAlert().remove()
+                }
+            } else {
+                input.style.borderColor = borderInvalid
+                step1.appendChild(errorAlert("Weak password").element)
+            }
+        } else if (input === confirmInput) {
+            const response = await sendRequest("/api/valid/password", "POST", {
+                password: input.value
+            })
+            const isStrong = response.status === 200
+
+            if (isStrong && input.value === passwordInput.value) {
+                passwordInput.style.borderColor = borderValid
+                confirmInput.style.borderColor = borderValid
+                errorAlert().remove()
+            } else {
+                passwordInput.style.borderColor = borderInvalid
+                confirmInput.style.borderColor = borderInvalid
+                step1.appendChild(errorAlert("Passwords were not match").element)
+            }
         }
     }
-    passwordInput.addEventListener("input", validatePasswordMatch);
-    confirmInput.addEventListener("input", validatePasswordMatch);
+    passwordInput.addEventListener("input", debounce(validatePassword));
+    confirmInput.addEventListener("input", debounce(validatePassword));
 
     step1.addEventListener("submit", (e) => {
         e.preventDefault()
-        if (
-            emailInput.value.trim() !== "" &&
-            passwordInput.value !== "" &&
-            confirmInput.value !== "" &&
-            passwordInput.value === confirmInput.value &&
-            emailInput.style.borderColor === "rgb(40, 167, 69)"
-        ) {
-            step1.classList.remove("active");
-            step2.classList.add("active");
-        } else {
-            step1.appendChild(errorAlert("Please fill all fields."))
+
+        // Valid email
+        if (emailInput.value === "" || emailInput.style.borderColor === borderInvalid) {
+            return step1.appendChild(errorAlert("Email is invalid.").element)
         }
+
+        // Valid password
+        if (passwordInput === "" || passwordInput.style.borderColor === borderInvalid) {
+            return step1.appendChild(errorAlert("Password is invalid.").element)
+        }
+
+        // Valid confirm password
+        if (confirmInput === "" || confirmInput.style.borderColor === borderInvalid) {
+            return step1.appendChild(errorAlert("Confirm password is invalid.").element)
+        }
+
+        // Valid match password
+        if (passwordInput.value !== confirmInput.value) {
+            return step1.appendChild(errorAlert("Passwords were not match.").element)
+        }
+
+        step1.classList.remove("active");
+        step2.classList.add("active");
     })
 
     // Back button
-    prevStepBtn.addEventListener("click", function () {
+    prevStepBtn.addEventListener("click", () => {
         step2.classList.remove("active");
         step1.classList.add("active");
     });
 
-    // Validate Username using API
-    const usernameInput = document.getElementById("regUsername");
-    usernameInput.addEventListener("blur", async function () {
-        const username = usernameInput.value.trim();
+    // Validate Username
+    usernameInput.addEventListener("input", debounce(async () => {
+        usernameInput.value = usernameInput.value.trim()
+        const username = usernameInput.value;
         if (username === "") return;
-        try {
-            const response = await fetch("/api/valid/username?v=" + encodeURIComponent(username));
-            if (response.ok) {
-                usernameInput.style.borderColor = "#28a745"; // green
-            } else {
-                usernameInput.style.borderColor = "#dc3545"; // red
-            }
-        } catch (error) {
-            usernameInput.style.borderColor = "#dc3545";
+
+        const response = await sendRequest("/api/valid/username", "POST", { username })
+        if (response.status === 200) {
+            usernameInput.style.borderColor = borderValid
+            errorAlert().remove()
+        } else {
+            usernameInput.style.borderColor = borderInvalid
+            step2.appendChild(errorAlert("Invalid username").element)
         }
-    });
+    }));
+
+    // Validate Name
+    nameInput.addEventListener("input", debounce(async () => {
+        nameInput.value = nameInput.value.trim();
+        const name = nameInput.value;
+        if (name === "") return;
+
+        const response = await sendRequest("/api/valid/name", "POST", { name })
+        if (response.status === 200) {
+            nameInput.style.borderColor = borderValid
+            errorAlert().remove()
+        } else {
+            nameInput.style.borderColor = borderInvalid
+            step2.appendChild(errorAlert("Invalid name").element)
+        }
+    }));
 
     step2.addEventListener("submit", async (e) => {
         e.preventDefault()
         if (
-            emailInput.value.trim() !== "" &&
-            passwordInput.value !== "" &&
-            confirmInput.value !== "" &&
+            emailInput.value !== "" && emailInput.style.borderColor === borderValid &&
+            passwordInput.value !== "" && passwordInput.style.borderColor === borderValid &&
+            confirmInput.value !== "" && confirmInput.style.borderColor === borderValid &&
             passwordInput.value === confirmInput.value &&
-            emailInput.style.borderColor === "rgb(40, 167, 69)" &&
-            usernameInput.style.borderColor === "rgb(40, 167, 69)"
+            usernameInput.value !== "" && usernameInput.style.borderColor === borderValid &&
+            nameInput.value !== "" && nameInput.style.borderColor === borderValid
         ) {
             const data = new FormData()
             data.append("email", emailInput.value)
             data.append("password", passwordInput.value)
             data.append("confirm", confirmInput.value)
             data.append("username", usernameInput.value)
-            data.append("name", document.querySelector("#regName").value)
+            data.append("name", nameInput.value)
 
             const response = await fetch("/auth/register", {
                 method: "POST",
@@ -106,27 +196,35 @@ document.addEventListener("DOMContentLoaded", function () {
             if (response.status === 201) {
                 window.location.href = "/"
             } else {
-                step2.appendChild(errorAlert("Invalid data in fields."))
+                step2.appendChild(errorAlert("Invalid data in fields.").element)
             }
         } else {
-            step2.appendChild(errorAlert("Please fill all fields."))
+            step2.appendChild(errorAlert("Please fill all fields.").element)
         }
     })
 
     function errorAlert(message) {
-        const errorDiv = document.createElement("div")
-        errorDiv.className = "alert alert-danger text-center"
-        errorDiv.role = "alert"
+        let errorDiv = document.querySelector(".alert.alert-danger.text-center")
+        if (!errorDiv) {
+            errorDiv = document.createElement("div")
+            errorDiv.className = "alert alert-danger text-center"
+            errorDiv.role = "alert"
+
+            function triggerOutside(e) {
+                if (!errorDiv.contains(e.target)) {
+                    errorDiv.remove()
+                    document.removeEventListener("click", triggerOutside)
+                }
+            }
+            document.addEventListener("click", triggerOutside)
+        }
         errorDiv.textContent = message
 
-        function triggerOutside(e) {
-            if (!errorDiv.contains(e.target)) {
+        return {
+            element: errorDiv,
+            remove: () => {
                 errorDiv.remove()
-                document.removeEventListener("click", triggerOutside)
             }
         }
-        document.addEventListener("click", triggerOutside)
-
-        return errorDiv
     }
 });

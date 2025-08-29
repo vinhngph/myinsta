@@ -24,9 +24,9 @@
 
                 <form id="login-form" class="step active">
                     <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="username" name="username" placeholder=" " required
-                            autofocus autocomplete="off" />
-                        <label for="username">Username</label>
+                        <input type="text" class="form-control" id="identifier" name="identifier" placeholder=" "
+                            required autofocus autocomplete="off" />
+                        <label for="identifier">Username or Email</label>
                     </div>
                     <div class="form-floating mb-3">
                         <input type="password" class="form-control" id="password" name="password" placeholder=" "
@@ -135,7 +135,7 @@
                     document.getElementById("otp-container").appendChild(spinnerRow)
 
                     const data = new FormData()
-                    data.append("username", document.getElementById("username").value)
+                    data.append("identifier", document.getElementById("identifier").value)
                     data.append("password", document.getElementById("password").value)
                     data.append("token", otp)
 
@@ -198,7 +198,7 @@
             } else if (response.status === 202) {
                 window.location.href = "/"
             } else {
-                document.getElementById("login-form").insertBefore(errorAlert("Invalid username or password."), document.getElementById("login-form").children[3])
+                document.getElementById("login-form").insertBefore(errorAlert("Invalid identifier or password."), document.getElementById("login-form").children[3])
             }
         })
 
