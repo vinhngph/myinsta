@@ -157,8 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Validate Name
     nameInput.addEventListener("input", debounce(async () => {
-        nameInput.value = nameInput.value.trim();
-        const name = nameInput.value;
+        const name = nameInput.value.trim();
         if (name === "") return;
 
         const response = await sendRequest("/api/valid/name", "POST", { name })

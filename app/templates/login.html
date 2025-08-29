@@ -25,12 +25,12 @@
                 <form id="login-form" class="step active">
                     <div class="form-floating mb-3">
                         <input type="text" class="form-control" id="identifier" name="identifier" placeholder=" "
-                            required autofocus autocomplete="off" />
+                            required autofocus autocomplete="username" />
                         <label for="identifier">Username or Email</label>
                     </div>
                     <div class="form-floating mb-3">
                         <input type="password" class="form-control" id="password" name="password" placeholder=" "
-                            required />
+                            required autocomplete="current-password" />
                         <label for="password">Password</label>
                     </div>
                     <div class="d-grid mb-3">
@@ -49,29 +49,30 @@
                             <div class="row mb-3">
                                 <p class="text-center fw-bold fs-5">Enter OTP</p>
                             </div>
+
                             <div class="row otp-inputs mb-3 g-2">
                                 <div class="col">
-                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                    <input type="text" maxlength="6" inputmode="numeric" pattern="[0-9]*"
+                                        class="form-control text-center otp" required autocomplete="one-time-code">
+                                </div>
+                                <div class="col">
+                                    <input type="text" maxlength="6" inputmode="numeric" pattern="[0-9]*"
                                         class="form-control text-center otp" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                    <input type="text" maxlength="6" inputmode="numeric" pattern="[0-9]*"
                                         class="form-control text-center otp" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                    <input type="text" maxlength="6" inputmode="numeric" pattern="[0-9]*"
                                         class="form-control text-center otp" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                    <input type="text" maxlength="6" inputmode="numeric" pattern="[0-9]*"
                                         class="form-control text-center otp" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
-                                        class="form-control text-center otp" required>
-                                </div>
-                                <div class="col">
-                                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+                                    <input type="text" maxlength="6" inputmode="numeric" pattern="[0-9]*"
                                         class="form-control text-center otp" required>
                                 </div>
                             </div>
@@ -89,136 +90,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-
-    <script>
-        const inputs = document.querySelectorAll(".otp-inputs .otp")
-        inputs.forEach((input, index) => {
-            input.addEventListener("input", async () => {
-                input.value = input.value.replace(/[^0-9]/g, "")
-
-                if (input.value.length === 1 && index < inputs.length - 1) {
-                    const otpSpinner = document.querySelector("#otp-spinner")
-                    if (otpSpinner) {
-                        otpSpinner.remove()
-                    }
-                    const otpError = document.querySelector("#otp-error")
-                    if (otpError) {
-                        otpError.remove()
-                    }
-
-                    inputs[index + 1].focus()
-                } else if (index === (inputs.length - 1) && input.value !== "") {
-                    let otp = ""
-                    inputs.forEach(input => otp += input.value)
-
-                    const otpError = document.getElementById("otp-error")
-                    if (otpError) {
-                        otpError.remove()
-                    }
-
-                    // Verify totp
-                    const spinnerRow = document.createElement("div")
-                    spinnerRow.className = "row justify-content-center"
-                    spinnerRow.id = "otp-spinner"
-
-                    const spinner = document.createElement("div")
-                    spinner.className = "spinner-border"
-                    spinner.role = "status"
-
-                    const spinnerSpan = document.createElement("span")
-                    spinnerSpan.className = "visually-hidden"
-                    spinnerSpan.textContent = "Loading..."
-
-                    spinner.appendChild(spinnerSpan)
-                    spinnerRow.appendChild(spinner)
-
-                    document.getElementById("otp-container").appendChild(spinnerRow)
-
-                    const data = new FormData()
-                    data.append("identifier", document.getElementById("identifier").value)
-                    data.append("password", document.getElementById("password").value)
-                    data.append("token", otp)
-
-                    const response = await fetch("/auth/login", {
-                        method: "POST",
-                        body: data
-                    })
-
-                    if (response.status === 202) {
-                        window.location.href = "/"
-                    } else if (response.status === 401) {
-                        if (document.getElementById("otp-spinner")) {
-                            spinnerRow.remove()
-                        }
-
-                        if (!document.getElementById("otp-error")) {
-                            const errorRow = document.createElement("div")
-                            errorRow.id = "otp-error"
-                            errorRow.className = "row"
-
-                            const errorP = document.createElement("div")
-                            errorP.className = "alert alert-danger text-center"
-                            errorP.role = "alert"
-                            errorP.textContent = "Wrong OTP. Please try again."
-                            errorRow.appendChild(errorP)
-
-                            document.getElementById("otp-container").appendChild(errorRow)
-                        }
-                    }
-                }
-            })
-
-            input.addEventListener("keydown", (e) => {
-                if (e.key === "Backspace" && !input.value && index > 0) {
-                    const otpSpinner = document.querySelector("#otp-spinner")
-                    if (otpSpinner) {
-                        otpSpinner.remove()
-                    }
-                    const otpError = document.querySelector("#otp-error")
-                    if (otpError) {
-                        otpError.remove()
-                    }
-
-                    inputs[index - 1].focus()
-                }
-            })
-        })
-
-        document.getElementById("login-form").addEventListener("submit", async (e) => {
-            e.preventDefault()
-
-            const response = await fetch("/auth/login", {
-                method: "POST",
-                body: new FormData(e.target)
-            })
-            if (response.status === 423) {
-                document.getElementById("login-form").classList.remove("active")
-                document.getElementById("otp-form").classList.add("active")
-                inputs[0].focus()
-            } else if (response.status === 202) {
-                window.location.href = "/"
-            } else {
-                document.getElementById("login-form").insertBefore(errorAlert("Invalid identifier or password."), document.getElementById("login-form").children[3])
-            }
-        })
-
-        function errorAlert(message) {
-            const errorDiv = document.createElement("div")
-            errorDiv.className = "alert alert-danger text-center"
-            errorDiv.role = "alert"
-            errorDiv.textContent = message
-
-            function triggerOutside(e) {
-                if (!errorDiv.contains(e.target)) {
-                    errorDiv.remove()
-                    document.removeEventListener("click", triggerOutside)
-                }
-            }
-            document.addEventListener("click", triggerOutside)
-
-            return errorDiv
-        }
-    </script>
+    <script src="/static/js/login.js"></script>
 </body>
 
 </html>
