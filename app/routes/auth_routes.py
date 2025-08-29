@@ -7,10 +7,10 @@ auth_bp = Blueprint("auth_bp", __name__)
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    username = request.form.get("username")
+    identifier = request.form.get("identifier")
     password = request.form.get("password")
     token = request.form.get("token")
-    return UserServices.login(username=username, password=password, token=token)
+    return UserServices.login(identifier=identifier, password=password, token=token)
 
 
 @auth_bp.route("/register", methods=["POST"])

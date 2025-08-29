@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, json
 from app.utils.auth import login_required
 from app.services.post_services import PostServices
 from app.services.user_services import UserServices
@@ -15,16 +15,28 @@ def new_post(user):
     return PostServices.new_post(user=user, file=file, description=description)
 
 
-@api_bp.route("/valid/email")
+@api_bp.route("/valid/email", methods=["POST"])
 def valid_email():
-    email = request.args.get("v")
+    email = request.json.get("email")
     return UserServices.valid_email(email=email)
 
 
-@api_bp.route("/valid/username")
+@api_bp.route("/valid/username", methods=["POST"])
 def valid_username():
-    username = request.args.get("v")
+    username = request.json.get("username")
     return UserServices.valid_username(username=username)
+
+
+@api_bp.route("/valid/name", methods=["POST"])
+def valid_name():
+    name = request.json.get("name")
+    return UserServices.valid_name(name=name)
+
+
+@api_bp.route("/valid/password", methods=["POST"])
+def valid_password():
+    pwd = request.json.get("password")
+    return UserServices.valid_password(pwd)
 
 
 @api_bp.route("/home")
