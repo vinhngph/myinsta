@@ -26,13 +26,13 @@
                 <form id="login-form" class="step active">
                     <div class="form-floating mb-3">
                         <input type="text" class="form-control" id="identifier" name="identifier" placeholder=" "
-                            required autofocus autocomplete="username" />
+                            required autofocus autocomplete="username" tabindex="1" />
                         <label for="identifier">Username or Email</label>
                     </div>
                     <div class="mb-3 input-group">
                         <div class="form-floating">
                             <input type="password" class="form-control" id="password" name="password" placeholder=" "
-                                required autocomplete="current-password" />
+                                required autocomplete="current-password" tabindex="2" />
                             <label for="password">Password</label>
                         </div>
                         <button class="btn btn-outline-secondary" type="button" id="btn-display-password"><i
@@ -40,12 +40,12 @@
                     </div>
 
                     <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary">Login</button>
+                        <button type="submit" class="btn btn-primary" tabindex="3">Login</button>
                     </div>
 
                     <div class="text-center">
                         <small class="text-register">Don't have an account?</small>
-                        <a href="/register" class="register-link ms-1">Register</a>
+                        <a href="/register" class="register-link ms-1" tabindex="4">Register</a>
                     </div>
                 </form>
 
