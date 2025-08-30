@@ -187,7 +187,7 @@ class UserServices:
         except:
             return jsonify({"message": "Unacceptable"}), 400
 
-        uri = totp.provisioning_uri(name=user["username"], issuer_name="myinsta")
+        uri = totp.provisioning_uri(name=user["username"], issuer_name="myinsta.nguyenphucvinh.io.vn")
 
         qr_image = qr_make(uri)
 

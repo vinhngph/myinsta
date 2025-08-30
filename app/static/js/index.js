@@ -5,43 +5,51 @@ let offset = 0;
 const limit = 5;
 let isLoading = false;
 
-const videoObserverOptions = {
+const postObserverOptions = {
     root: null,
     rootMargin: "0px",
     threshold: 0.5
 }
 
-const videoAutoplayCallback = (entries, observer) => {
+const assignSource = (entries, observer) => {
     entries.forEach(entry => {
-        const video = entry.target;
+        const post = entry.target;
         if (entry.isIntersecting) {
-            video.play()
+            post.src = post.dataset.src
+            if (post.dataset.type === "video") {
+                post.play()
+            }
         } else {
-            video.pause()
+            if (post.dataset.type === "video") {
+                post.pause()
+            }
         }
     })
 }
 
-const videoObserver = new IntersectionObserver(videoAutoplayCallback, videoObserverOptions);
+const postObserver = new IntersectionObserver(assignSource, postObserverOptions);
 
 async function fetchAttachment(url) {
-    const response = await fetch(url);
+    const response = await fetch(url, { method: "HEAD" });
     const contentType = response.headers.get("Content-Type");
 
     if (contentType.startsWith("image/")) {
         const img = document.createElement("img");
         img.className = "card-img-top";
-        img.src = url;
+        img.dataset.src = url;
+        img.dataset.type = "img"
         img.alt = "Post image";
         return img;
     } else if (contentType.startsWith("video/")) {
         const video = document.createElement("video");
-        video.src = url;
+        video.dataset.src = url;
+        video.dataset.type = "video"
         video.controls = true;
         video.playsInline = true;
         video.loop = true;
         video.muted = true;
         video.className = "img-fluid rounded";
+        video.preload = "metadata";
         return video;
     } else {
         throw new Error("Unsupported content type");
@@ -84,9 +92,7 @@ async function loadPosts() {
                     });
                     ratioDiv.appendChild(attachment);
 
-                    if (attachment.tagName === "VIDEO") {
-                        videoObserver.observe(attachment)
-                    }
+                    postObserver.observe(attachment)
                 } catch (error) {
                     console.error("Error loading attachment:", error);
                 }
