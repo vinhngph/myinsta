@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // Elements Step 1 & 2
     const step1 = document.getElementById("step1");
     const step2 = document.getElementById("step2");
-    const nextStepBtn = document.getElementById("nextStep");
     const prevStepBtn = document.getElementById("prevStep");
 
     const emailInput = document.getElementById("regEmail");
@@ -226,4 +225,21 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     }
+
+
+    document.querySelectorAll(".btn-display-password").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault()
+
+            const inputGroup = e.currentTarget.closest(".input-group")
+            const pwdInput = inputGroup.querySelector("input")
+
+            const type = pwdInput.getAttribute("type") === "password" ? "text" : "password"
+            pwdInput.setAttribute("type", type)
+
+            const icon = btn.querySelector("i")
+            icon.classList.toggle("bi-eye-fill")
+            icon.classList.toggle("bi-eye-slash-fill")
+        })
+    })
 });

@@ -1,5 +1,7 @@
 const optAutofill = document.getElementById("otp-autofill")
 const inputs = document.querySelectorAll(".otp-inputs .otp")
+const togglePassword = document.querySelector("#btn-display-password")
+const passwordInput = document.querySelector("#password")
 
 async function submitLogin() {
     let otp = ""
@@ -159,3 +161,14 @@ function errorAlert(message) {
 
     return errorDiv
 }
+
+document.getElementById("btn-display-password").addEventListener("click", async (e) => {
+    e.preventDefault()
+
+    const type = passwordInput.getAttribute("type") === "password" ? "text" : "password"
+    passwordInput.setAttribute("type", type)
+
+    const icon = togglePassword.querySelector("i")
+    icon.classList.toggle("bi-eye-fill")
+    icon.classList.toggle("bi-eye-slash-fill")
+})
